@@ -42,9 +42,9 @@ export function GetStartedDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl text-center font-bold">Welcome Back</DialogTitle>
+          <DialogTitle className="text-2xl text-center font-bold">Get Started</DialogTitle>
           <DialogDescription className="text-center text-base text-muted-foreground">
-            Choose your preferred sign in method
+            Create your account to start reducing food waste
           </DialogDescription>
         </DialogHeader>
         
@@ -76,7 +76,7 @@ export function GetStartedDialog() {
               />
             </div>
             <Button type="submit" className="w-full h-11 text-base font-medium bg-blue-500 hover:bg-blue-600" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Log in"}
+              {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
 
@@ -111,16 +111,9 @@ export function GetStartedDialog() {
                 <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
               </svg>
             </div>
-            LOG IN WITH GOOGLE
+            CONTINUE WITH GOOGLE
           </Button>
         </div>
-
-        <p className="text-center text-sm text-muted-foreground mt-4">
-          Don't have an account?{" "}
-          <button className="text-[#4285F4] hover:underline font-medium">
-            Sign up for free
-          </button>
-        </p>
       </DialogContent>
     </Dialog>
   );

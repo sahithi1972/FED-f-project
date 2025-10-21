@@ -50,7 +50,7 @@ const HowItWorks = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12 relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12 relative">
           {steps.map((step, index) => (
             <div 
               key={index} 
@@ -90,10 +90,10 @@ const HowItWorks = () => {
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#34D399]/5 via-transparent to-[#FFB800]/5"></div>
               </div>
 
-              {/* Arrow connector (hidden on last item and mobile) */}
+              {/* Connecting line (hidden on last item and mobile) */}
               {index < steps.length - 1 && (
-                <div className="hidden lg:flex absolute top-1/2 -right-6 transform -translate-y-1/2 z-10">
-                  <ArrowRight className="h-8 w-8 text-[#34D399] transform group-hover:scale-110 transition-transform duration-300" />
+                <div className="hidden lg:block absolute top-1/2 -right-8 w-8 transform -translate-y-1/2 z-10">
+                  <div className="h-[3px] w-full bg-gradient-to-r from-[#34D399] to-[#FFB800] rounded-full shadow-sm"></div>
                 </div>
               )}
             </div>
