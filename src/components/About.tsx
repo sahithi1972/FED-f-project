@@ -5,7 +5,7 @@ const About = () => {
     <section id="about" className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center space-y-4 mb-16 animate-fade-in">
-          <h2 className="text-3xl md:text-5xl font-bold text-foreground">
+          <h2 className="text-3xl md:text-5xl font-heading font-bold text-foreground">
             About ZeroWasteChef
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

@@ -41,6 +41,7 @@ const Navbar = () => {
     { label: "Features", href: "#features" },
     { label: "How It Works", href: "#how-it-works" },
     { label: "Recipes", href: "#recipes" },
+    { label: "Impact", href: "#impact" },
     { label: "About", href: "#about" },
   ];
 
@@ -73,7 +74,7 @@ const Navbar = () => {
                 <a
                   key={item.label}
                   href={item.href}
-                  className={`text-sm font-medium relative py-1 ${
+                  className={`text-sm font-medium relative ${
                     isActive
                       ? "text-primary"
                       : "text-muted-foreground hover:text-primary"

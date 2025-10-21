@@ -42,7 +42,7 @@ const HowItWorks = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center space-y-4 mb-16">
-          <h2 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-[#34D399] to-[#FFB800] bg-clip-text text-transparent pb-2">
+          <h2 className="text-4xl md:text-6xl font-heading font-bold bg-gradient-to-r from-[#34D399] to-[#FFB800] bg-clip-text text-transparent pb-2">
             How It Works
           </h2>
           <p className="text-xl text-gray-600 dark:text-[#34D399] font-medium max-w-2xl mx-auto">
