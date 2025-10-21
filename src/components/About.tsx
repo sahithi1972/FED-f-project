@@ -2,8 +2,8 @@ import { Heart, Leaf, Globe } from "lucide-react";
 
 const About = () => {
   return (
-    <section id="about" className="py-20 bg-background">
-      <div className="container mx-auto px-4">
+    <section id="about" className="py-12 sm:py-20 bg-background">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center space-y-4 mb-16 animate-fade-in">
           <h2 className="text-3xl md:text-5xl font-heading font-bold text-foreground">
             About ZeroWasteChef

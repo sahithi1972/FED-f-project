@@ -2,6 +2,10 @@ import * as React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/auth-context";
+import { AuthModalProvider } from "./contexts/auth-modal-context";
+import { Toaster } from "./components/ui/toaster";
+import { ChatbotWidget } from "./components/ChatbotWidget";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/index";
 import NotFound from "./pages/Notfound";
 import Recipes from "./pages/recipes";
@@ -47,30 +51,40 @@ class ErrorBoundary extends React.Component<
 }
 
 const App: React.FC = () => {
-  console.log('Rendering App component');
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/recipes" element={<Recipes />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/how-it-works" element={<HowItWorks />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </QueryClientProvider>
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <AuthModalProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/recipes" element={<Recipes />} />
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/how-it-works" element={<HowItWorks />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <ChatbotWidget />
+              <Toaster />
+            </AuthModalProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 };

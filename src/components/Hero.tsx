@@ -30,21 +30,21 @@ const Hero = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col items-center text-center space-y-8">
           {/* Heading */}
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-tight max-w-4xl">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-tight max-w-4xl">
             Cook Smart with{" "}
             <span className="text-[#34D399]">What You Have</span>
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg md:text-xl text-[#34D399] max-w-2xl font-medium">
+          <p className="text-lg md:text-xl text-[#34D399] max-w-2xl font-medium px-4">
             Transform your available ingredients into delicious meals. Smart cooking starts here.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-row gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4 pt-4 px-4">
             <Button 
               size="lg" 
-              className="bg-[#34D399] hover:bg-[#34D399]/90 text-white font-medium px-8"
+              className="w-full sm:w-auto bg-[#34D399] hover:bg-[#34D399]/90 text-white font-medium px-8"
               onClick={() => scrollToSection('ingredient-search')}
             >
               <ChefHat className="h-5 w-5 mr-2" />
@@ -53,7 +53,7 @@ const Hero = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="text-[#34D399] border-[#34D399] hover:bg-[#34D399]/10"
+              className="w-full sm:w-auto text-[#34D399] border-[#34D399] hover:bg-[#34D399]/10"
               onClick={() => scrollToSection('how-it-works')}
             >
               See How It Works
@@ -61,7 +61,7 @@ const Hero = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-8 pt-12 w-full max-w-3xl">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-12 w-full max-w-3xl text-center">
             <div className="space-y-2">
               <div className="text-3xl md:text-4xl font-bold text-[#34D399]">200+</div>
               <div className="text-sm text-[#34D399]">Easy Recipes</div>

@@ -6,11 +6,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "./ui/dialogue";
+} from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Separator } from "./ui/seperator";
+import { Separator } from "./ui/separator";
 import { Mail } from "lucide-react";
 import { useAuth } from "../contexts/auth-context";
 

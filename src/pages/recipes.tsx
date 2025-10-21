@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
-import { Label } from "../components/ui/label";
-import { Slider } from "../components/ui/slider";
-import { Checkbox } from "../components/ui/checkbox";
+import { Skeleton } from "../components/ui/skeleton";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { LayoutGrid, LayoutList, Search, SlidersHorizontal } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet";
 import { ScrollArea } from "../components/ui/scroll-area";
+import { Label } from "../components/ui/label";
+import { Slider } from "../components/ui/slider";
+import { Checkbox } from "../components/ui/checkbox";
 
 type ViewMode = "grid" | "list";
 
@@ -34,6 +36,13 @@ const dietaryOptions = [
   "Dairy-free",
 ];
 
+const seasons = [
+  "All",
+  "Summer",
+  "Monsoon",
+  "Winter"
+];
+
 const equipment = [
   "One-pot",
   "Microwave",
@@ -42,13 +51,6 @@ const equipment = [
   "Air Fryer",
 ];
 
-const seasons = [
-  "Spring",
-  "Summer",
-  "Autumn",
-  "Winter",
-  "All Season",
-];
 
 export default function RecipeSearch() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");

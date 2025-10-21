@@ -1,7 +1,17 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
+interface User {
+  email: string;
+  name: string;
+  preferences?: {
+    cuisines: string[];
+    dietaryRestrictions: string[];
+  };
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
+  currentUser: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
@@ -12,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -22,6 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Simulated authentication success
       setIsAuthenticated(true);
+      setCurrentUser({
+        email,
+        name: email.split('@')[0], // Simple name from email
+        preferences: {
+          cuisines: [],
+          dietaryRestrictions: []
+        }
+      });
     } finally {
       setIsLoading(false);
     }
@@ -29,10 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setIsAuthenticated(false);
+    setCurrentUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

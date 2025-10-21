@@ -1,6 +1,29 @@
+import { useState } from "react";
 import { Leaf, Mail, MapPin, Phone } from "lucide-react";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { useToast } from "./ui/use-toast";
 
 const Footer = () => {
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+      });
+      return;
+    }
+    toast({
+      title: "Thanks for subscribing!",
+      description: "You'll receive our newsletter in your inbox.",
+    });
+    setEmail("");
+  };
+
   const footerLinks = {
     product: [
       { label: "Features", href: "#features" },
@@ -30,6 +53,37 @@ const Footer = () => {
 
   return (
     <footer className="bg-muted/30 border-t border-border">
+      {/* Newsletter Section */}
+      <div className="bg-[#1E3A2F] py-12">
+        <div className="container mx-auto px-4">
+          <div className="max-w-[600px] mx-auto text-center">
+            <h2 className="text-2xl font-bold text-white mb-2">Stay Updated with Zero-Waste Tips</h2>
+            <p className="text-gray-300 mb-6">Get weekly recipes and sustainability insights</p>
+            
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 sm:gap-0 mb-4">
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 rounded-r-none bg-white text-foreground"
+              />
+              <Button 
+                type="submit"
+                className="bg-[#F97316] hover:bg-[#EA580C] rounded-l-none text-white"
+              >
+                Subscribe
+              </Button>
+            </form>
+            
+            <p className="text-xs text-gray-400">
+              We respect your privacy. Unsubscribe anytime.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Footer Content */}
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-8">
           {/* Brand */}

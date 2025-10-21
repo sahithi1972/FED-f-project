@@ -57,16 +57,16 @@ const HowItWorks = () => {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center space-y-4 mb-16">
-          <h2 className="text-4xl md:text-6xl font-heading font-bold bg-gradient-to-r from-[#34D399] to-[#FFB800] bg-clip-text text-transparent pb-2">
+        <div className="text-center space-y-4 mb-12 sm:mb-16 px-4 sm:px-0">
+          <h2 className="text-3xl sm:text-4xl md:text-6xl font-heading font-bold bg-gradient-to-r from-[#34D399] to-[#FFB800] bg-clip-text text-transparent pb-2">
             How It Works
           </h2>
-          <p className="text-xl text-gray-600 dark:text-[#34D399] font-medium max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-600 dark:text-[#34D399] font-medium max-w-2xl mx-auto">
             Start reducing food waste in 4 simple steps
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12 relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-12 relative">
           {steps.map((step, index) => (
             <div 
               key={index} 
@@ -77,25 +77,25 @@ const HowItWorks = () => {
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#34D399]/30 via-[#FFB800]/20 to-[#34D399]/30"></div>
               
               {/* Content */}
-              <div className="relative h-full rounded-2xl bg-white dark:bg-black/40 p-8 backdrop-blur-sm border border-gray-100 dark:border-white/10">
+              <div className="relative h-full rounded-2xl bg-white dark:bg-black/40 p-6 sm:p-8 backdrop-blur-sm border border-gray-100 dark:border-white/10">
                 <div className="flex justify-between items-start mb-6">
                   {/* Number Badge with gradient */}
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-r from-[#34D399] to-[#FFB800] text-white font-bold text-xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-[#34D399] to-[#FFB800] text-white font-bold text-lg sm:text-xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
                     {step.number}
                   </div>
 
                   {/* Icon */}
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#34D399] to-[#FFB800]/80 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <step.icon className="h-7 w-7 text-white" />
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#34D399] to-[#FFB800]/80 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <step.icon className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="space-y-3">
-                  <h3 className="text-xl font-bold text-gray-800 dark:text-white group-hover:text-[#34D399] transition-colors duration-300">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white group-hover:text-[#34D399] transition-colors duration-300">
                     {step.title}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-[#34D399] transition-colors duration-300">
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-[#34D399] transition-colors duration-300">
                     {step.description}
                   </p>
                 </div>
@@ -116,13 +116,13 @@ const HowItWorks = () => {
           ))}
         </div>
 
-        <div className="text-center mt-12">
+        <div className="text-center mt-12 px-4 sm:px-0">
           {isShowingSignIn ? (
             <SignInDialog />
           ) : (
             <Button 
               size="lg"
-              className="bg-[#2D7A3E] text-white px-8 py-4 rounded-lg font-semibold shadow-lg hover:scale-105 transition-transform duration-300"
+              className="w-full sm:w-auto bg-[#2D7A3E] text-white px-8 py-4 rounded-lg font-semibold shadow-lg hover:scale-105 transition-transform duration-300"
               onClick={handleStartCooking}
             >
               Start Cooking Free

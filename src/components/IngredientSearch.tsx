@@ -73,12 +73,12 @@ function IngredientSearch() {
   };
 
   return (
-    <section className="relative px-4 py-20 bg-gradient-to-b from-background to-background/80">
+    <section className="relative px-4 sm:px-6 lg:px-8 py-12 sm:py-20 bg-gradient-to-b from-background to-background/80">
       <div className="container mx-auto max-w-4xl">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
             <Search className="w-8 h-8 text-emerald-500" strokeWidth={1.5} />
-            <h2 className="text-4xl font-bold tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-center px-4 sm:px-0">
               What ingredients do you have?
             </h2>
           </div>
@@ -90,14 +90,14 @@ function IngredientSearch() {
         <div className="relative">
           <Input
             type="text"
-            placeholder="Type ingredients you have... (tomato, rice, onion)"
+            placeholder="Type ingredients..."
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            className="w-full h-14 px-6 rounded-2xl bg-background/50 border-2 border-muted shadow-lg"
+            className="w-full h-12 sm:h-14 px-4 sm:px-6 rounded-2xl bg-background/50 border-2 border-muted shadow-lg"
           />
 
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2">
             <Button 
               variant="default" 
               className="bg-emerald-500 hover:bg-emerald-600"

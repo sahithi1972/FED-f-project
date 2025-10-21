@@ -6,27 +6,54 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
+import { Checkbox } from "./ui/checkbox";
 import { GetStartedDialog } from "./GetStartedDialog";
 import { useAuth } from "../contexts/auth-context";
+import { EyeIcon, EyeOffIcon, X } from "lucide-react";
+import { cn } from "../lib/utils";
 
 export function SignInDialog() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const { login, isLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
+  const validateForm = () => {
+    const newErrors: { email?: string; password?: string } = {};
+    
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    
+    if (!password) {
+      newErrors.password = "Password is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
+    
     try {
       await login(email, password);
       setIsOpen(false);
     } catch (error) {
       console.error("Login failed:", error);
+      setErrors({ password: "Invalid email or password" });
     }
   };
 
@@ -40,15 +67,22 @@ export function SignInDialog() {
       <DialogTrigger asChild>
         <Button variant="ghost">Sign In</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[400px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden">
+        <div className="absolute right-4 top-4">
+          <DialogClose asChild>
+            <Button variant="ghost" className="h-6 w-6 p-0 rounded-md" aria-label="Close">
+              <X className="h-4 w-4" />
+            </Button>
+          </DialogClose>
+        </div>
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-2xl text-center font-bold">Welcome Back</DialogTitle>
           <DialogDescription className="text-center text-base text-muted-foreground">
             Sign in to continue to ZeroWasteChef
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex flex-col space-y-4 px-2">
+        <div className="flex flex-col space-y-4 px-6 pb-6">
           {/* Email Sign In Form */}
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -58,72 +92,126 @@ export function SignInDialog() {
                 type="email"
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-11"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors((prev) => ({ ...prev, email: undefined }));
+                }}
+                className={cn("h-11", errors.email && "border-red-500 focus-visible:ring-red-500")}
               />
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="h-11"
-              />
-              <div className="flex justify-end">
-                <Button variant="link" className="text-sm px-0">
-                  Forgot password?
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setErrors((prev) => ({ ...prev, password: undefined }));
+                  }}
+                  className={cn("h-11 pr-10", errors.password && "border-red-500 focus-visible:ring-red-500")}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-11 px-3 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOffIcon className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <EyeIcon className="h-4 w-4 text-muted-foreground" />
+                  )}
                 </Button>
               </div>
+              {errors.password && (
+                <p className="text-sm text-red-500">{errors.password}</p>
+              )}
             </div>
-            <Button type="submit" className="w-full h-11 text-base font-medium bg-blue-500 hover:bg-blue-600 text-white" disabled={isLoading}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="remember" 
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                />
+                <label
+                  htmlFor="remember"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Remember me
+                </label>
+              </div>
+              <Button variant="link" className="text-sm px-0">
+                Forgot password?
+              </Button>
+            </div>
+            <Button 
+              type="submit" 
+              className="w-full h-11 text-base font-medium bg-[#2D7A3E] hover:bg-[#236830] text-white" 
+              disabled={isLoading}
+            >
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
 
-          <div className="flex items-center gap-2 my-2">
-            <Separator className="flex-1" />
-            <span className="text-sm text-muted-foreground px-2">OR</span>
-            <Separator className="flex-1" />
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-background px-2 text-sm text-muted-foreground">
+                or continue with
+              </span>
+            </div>
           </div>
 
           {/* Social Sign In Buttons */}
-          <Button 
-            variant="outline" 
-            className="flex items-center justify-center gap-2 h-11 text-base bg-[#4285F4] text-white hover:bg-[#3367D6]"
-            onClick={() => handleSocialSignIn('Google')}
-          >
-            <div className="bg-white p-1 rounded">
-              <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          <div className="grid grid-cols-3 gap-3">
+            <Button 
+              variant="outline" 
+              className="h-11"
+              onClick={() => handleSocialSignIn('Google')}
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5.35 5.35c1.56 1.56 2.37 3.61 2.37 5.65 0 .27-.03.54-.07.81h-6.89v-2.91h4.43c-.18-.88-.74-1.64-1.54-2.12l1.7-1.43zM12 4c2.04 0 3.92.7 5.41 1.87l-2.01 1.69C14.29 6.69 13.19 6 12 6c-2.21 0-4 1.79-4 4H6c0-3.31 2.69-6 6-6zm-6 8c0-1.09.29-2.12.79-3.01l1.7 1.43C7.74 11.36 7 12.64 7 14h2c0-1.66 1.34-3 3-3v2H7v-1zm11.7 2.35c-.38 1.88-1.49 3.55-3.07 4.63C13.79 19.64 12.91 20 12 20c-2.59 0-4.86-1.37-6.13-3.43l2-1.68C8.88 16.76 10.33 18 12 18c1.79 0 3.29-1.13 3.88-2.71h-3.88v-2h6.7c.04.27.07.54.07.81 0 1.94-.81 3.7-2.37 5.25z"/>
               </svg>
-            </div>
-            Continue with Google
-          </Button>
+            </Button>
 
-          <Button 
-            variant="outline" 
-            className="flex items-center justify-center gap-2 h-11 text-base hover:bg-accent/5 border-2"
-            onClick={() => handleSocialSignIn('Apple')}
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.57-.12 0-.23-.02-.3-.03-.01-.06-.04-.22-.04-.39 0-.98.423-2.03 1.137-2.89.71-.85 1.83-1.54 2.86-1.54.11 0 .21.02.27.04.03.08.07.17.07.27zm3.413 22.107V11.21c0-5.83-3.953-8.117-7.447-8.117-1.912 0-3.37.668-4.085 1.297-.75-.573-1.715-.925-2.885-.925-2.817 0-5.183 1.962-5.183 4.618 0 1.163.39 2.076 1.044 2.773.71.752 1.71 1.194 2.852 1.194.03 0 .06 0 .09-.002.15 1.297.57 2.588 1.487 3.527.91.94 2.19 1.514 3.59 1.514.21 0 .41-.012.61-.035v4.733c0 .32.26.58.582.58h3.32c.32 0 .583-.26.583-.582v-5.39c0-.32-.26-.58-.58-.582h-3.32c-.32 0-.583.26-.583.582v1.18c-.14.027-.28.046-.424.057-.01-.077-.014-.155-.014-.235 0-1.56.73-2.93 1.84-3.83 1.1-.89 2.58-1.42 4.22-1.42 3.18 0 5.45 1.98 5.45 4.98v7.92c0 .32.26.58.582.58h3.32c.32 0 .583-.26.583-.582z" />
-            </svg>
-            Continue with Apple
-          </Button>
+            <Button 
+              variant="outline" 
+              className="h-11"
+              onClick={() => handleSocialSignIn('Facebook')}
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
+              </svg>
+            </Button>
+
+            <Button 
+              variant="outline" 
+              className="h-11"
+              onClick={() => handleSocialSignIn('Apple')}
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
+              </svg>
+            </Button>
+          </div>
         </div>
 
-        <p className="text-center text-sm text-muted-foreground mt-4">
-          Don't have an account?{" "}
-          <GetStartedDialog />
-        </p>
+        <div className="p-6 bg-muted/50 border-t">
+          <p className="text-center text-sm text-muted-foreground">
+            Don't have an account?{" "}
+            <GetStartedDialog />
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );

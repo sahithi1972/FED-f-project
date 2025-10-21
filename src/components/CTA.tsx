@@ -8,8 +8,8 @@ const CTA = () => {
   const [showSignIn, setShowSignIn] = useState(false);
   const navigate = useNavigate();
   return (
-    <section className="py-20 bg-gradient-hero">
-      <div className="container mx-auto px-4">
+    <section className="py-12 sm:py-20 bg-gradient-hero">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-eco p-12 md:p-16 shadow-elevated">
           <div className="relative z-10 flex flex-col items-center text-center space-y-6 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm">
