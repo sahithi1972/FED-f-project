@@ -2,18 +2,93 @@ import { Button } from "./ui/button";
 import { Leaf, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
-import { AuthDialog } from "./AuthDialog";
-import { Link, useLocation } from "react-router-dom";
+import { SignInDialog } from "./SignInDialog";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/auth-context";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  
+  const handleNavigation = async (item: typeof menuItems[0]) => {
+    if (item.requiresAuth && !currentUser) {
+      setShowAuthModal(true);
+      return;
+    }
+    
+    setIsNavigating(true);
+    if (item.onClick) {
+      await item.onClick();
+    }
+    setIsNavigating(false);
+    if (isOpen) setIsOpen(false);
+  };
 
   const menuItems = [
-    { label: "Home", href: "/" },
-    { label: "Recipes", href: "/recipes" },
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "How It Works", href: "/how-it-works" },
+    { 
+      label: "Home", 
+      href: "/",
+      onClick: () => {
+        if (location.pathname === '/') {
+          if (location.hash) {
+            // If there's a hash in the URL, reload to clear it
+            window.location.href = '/';
+          } else {
+            // Just scroll to top smoothly
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }
+      }
+    },
+    { 
+      label: "Recipes", 
+      href: "/recipes",
+      onClick: () => {
+        // Handle any ingredient params if they exist
+        const params = new URLSearchParams(location.search);
+        const ingredients = params.get('ingredients');
+        if (ingredients) {
+          navigate(`/recipes?ingredients=${ingredients}`);
+        }
+      }
+    },
+    { 
+      label: "How It Works",
+      href: "/#how-it-works",
+      onClick: () => {
+        if (location.pathname === '/') {
+          // If on homepage, scroll to section
+          document.getElementById('how-it-works')?.scrollIntoView({
+            behavior: 'smooth'
+          });
+        } else {
+          // If on another page, navigate to homepage with section hash
+          navigate('/#how-it-works');
+        }
+      }
+    },
+    { 
+      label: "Dashboard", 
+      href: "/dashboard",
+      requiresAuth: true 
+    },
+    { 
+      label: "How It Works", 
+      href: "#how-it-works",
+      onClick: () => {
+        if (location.pathname === '/') {
+          const section = document.getElementById('how-it-works');
+          section?.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          // If not on homepage, navigate to homepage and then scroll
+          window.location.href = '/#how-it-works';
+        }
+      }
+    },
   ];
 
   return (
@@ -31,11 +106,15 @@ const Navbar = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
             {menuItems.map((item) => {
-              const isActive = location.pathname === item.href;
+              const isActive = item.href.startsWith('/') ? location.pathname === item.href : location.hash === item.href;
+              const Component = item.href.startsWith('#') ? 'a' : Link;
+              
               return (
-                <Link
+                <Component
                   key={item.label}
-                  to={item.href}
+                  href={item.href.startsWith('#') ? item.href : undefined}
+                  to={item.href.startsWith('#') ? undefined : item.href}
+                  onClick={() => handleNavigation(item)}
                   className={`text-sm font-medium relative ${
                     isActive
                       ? "text-primary"
@@ -44,10 +123,10 @@ const Navbar = () => {
                     isActive
                       ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:rounded-full"
                       : ""
-                  }`}
+                  } ${isNavigating ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                   {item.label}
-                </Link>
+                </Component>
               );
             })}
           </div>
@@ -55,7 +134,10 @@ const Navbar = () => {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
             <ThemeToggle />
-            <AuthDialog />
+            <SignInDialog 
+              open={showAuthModal} 
+              onOpenChange={setShowAuthModal}
+            />
           </div>
 
           {/* Mobile Menu Button */}
@@ -80,8 +162,8 @@ const Navbar = () => {
                     isActive
                       ? "text-primary"
                       : "text-muted-foreground hover:text-primary"
-                  } transition-colors`}
-                  onClick={() => setIsOpen(false)}
+                  } transition-colors ${isNavigating ? 'opacity-50 pointer-events-none' : ''}`}
+                  onClick={() => handleNavigation(item)}
                 >
                   {item.label}
                 </Link>
@@ -91,7 +173,10 @@ const Navbar = () => {
               <div className="flex justify-start px-2">
                 <ThemeToggle />
               </div>
-              <AuthDialog />
+              <SignInDialog 
+                open={showAuthModal} 
+                onOpenChange={setShowAuthModal} 
+              />
             </div>
           </div>
         )}

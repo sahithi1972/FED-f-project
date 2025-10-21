@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogContent,
@@ -13,210 +15,218 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
 import { Checkbox } from "./ui/checkbox";
-import { GetStartedDialog } from "./GetStartedDialog";
-import { useAuth } from "../contexts/auth-context";
-import { EyeIcon, EyeOffIcon, X } from "lucide-react";
-import { cn } from "../lib/utils";
+import { useAuth } from "@/contexts/auth-context";
+import { EyeIcon, EyeOffIcon, Loader2, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { signInSchema, type SignInFormData } from "@/lib/validations/auth";
 
-export function SignInDialog() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+interface SignInDialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const { login, isLoading } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
 
-  const validateForm = () => {
-    const newErrors: { email?: string; password?: string } = {};
-    
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-    
-    if (!password) {
-      newErrors.password = "Password is required";
-    }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+    reset,
+  } = useForm<SignInFormData>({
+    resolver: zodResolver(signInSchema),
+  });
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-    
+  const onSubmit = async (data: SignInFormData) => {
     try {
-      await login(email, password);
-      setIsOpen(false);
+      await login(data.email, data.password);
+      if (rememberMe) {
+        localStorage.setItem("rememberMe", "true");
+      }
+      reset();
+      if (onOpenChange) {
+        onOpenChange(false);
+      } else {
+        setIsOpen(false);
+      }
     } catch (error) {
-      console.error("Login failed:", error);
-      setErrors({ password: "Invalid email or password" });
+      setError("root", {
+        type: "manual",
+        message: "Invalid email or password",
+      });
     }
   };
 
   const handleSocialSignIn = (provider: string) => {
+    // TODO: Implement social login
     console.log(`Signing in with ${provider}`);
-    // Here you would implement the actual social sign-in logic
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={open !== undefined ? open : isOpen} onOpenChange={onOpenChange ?? setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost">Sign In</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden">
-        <div className="absolute right-4 top-4">
-          <DialogClose asChild>
-            <Button variant="ghost" className="h-6 w-6 p-0 rounded-md" aria-label="Close">
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogClose>
-        </div>
-        <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="text-2xl text-center font-bold">Welcome Back</DialogTitle>
-          <DialogDescription className="text-center text-base text-muted-foreground">
-            Sign in to continue to ZeroWasteChef
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
+        <DialogHeader>
+          <DialogTitle>Welcome Back</DialogTitle>
+          <DialogDescription>
+            Sign in to continue to your account
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="flex flex-col space-y-4 px-6 pb-6">
-          {/* Email Sign In Form */}
-          <form onSubmit={handleEmailSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              {...register("email")}
+              aria-describedby={errors.email ? "email-error" : undefined}
+              className={cn(errors.email && "border-destructive")}
+            />
+            {errors.email && (
+              <p id="email-error" className="text-sm text-destructive">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
               <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setErrors((prev) => ({ ...prev, email: undefined }));
-                }}
-                className={cn("h-11", errors.email && "border-red-500 focus-visible:ring-red-500")}
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                {...register("password")}
+                aria-describedby={errors.password ? "password-error" : undefined}
+                className={cn(errors.password && "border-destructive")}
               />
-              {errors.email && (
-                <p className="text-sm text-red-500">{errors.email}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setErrors((prev) => ({ ...prev, password: undefined }));
-                  }}
-                  className={cn("h-11 pr-10", errors.password && "border-red-500 focus-visible:ring-red-500")}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-11 px-3 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOffIcon className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <EyeIcon className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </Button>
-              </div>
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password}</p>
-              )}
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="remember" 
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                />
-                <label
-                  htmlFor="remember"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Remember me
-                </label>
-              </div>
-              <Button variant="link" className="text-sm px-0">
-                Forgot password?
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-3 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOffIcon className="h-4 w-4" />
+                ) : (
+                  <EyeIcon className="h-4 w-4" />
+                )}
+                <span className="sr-only">
+                  {showPassword ? "Hide password" : "Show password"}
+                </span>
               </Button>
             </div>
-            <Button 
-              type="submit" 
-              className="w-full h-11 text-base font-medium" 
-              variant="hero"
-              loading={isLoading}
-              loadingText="Signing in..."
-            >
-              Sign in
-            </Button>
-          </form>
-
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
+            {errors.password && (
+              <p id="password-error" className="text-sm text-destructive">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+              />
+              <Label
+                htmlFor="remember"
+                className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Remember me
+              </Label>
             </div>
-            <div className="relative flex justify-center">
-              <span className="bg-background px-2 text-sm text-muted-foreground">
+            <Button variant="link" className="px-0 font-normal" type="button">
+              Forgot password?
+            </Button>
+          </div>
+          {errors.root && (
+            <p className="text-sm text-destructive text-center">
+              {errors.root.message}
+            </p>
+          )}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading ? "Signing in..." : "Sign in"}
+          </Button>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
                 or continue with
               </span>
             </div>
           </div>
-
-          {/* Social Sign In Buttons */}
-          <div className="grid grid-cols-3 gap-3">
-            <Button 
-              variant="outline" 
-              className="h-11"
-              onClick={() => handleSocialSignIn('Google')}
-              loading={isLoading}
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleSocialSignIn("Google")}
+              disabled={isLoading}
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5.35 5.35c1.56 1.56 2.37 3.61 2.37 5.65 0 .27-.03.54-.07.81h-6.89v-2.91h4.43c-.18-.88-.74-1.64-1.54-2.12l1.7-1.43zM12 4c2.04 0 3.92.7 5.41 1.87l-2.01 1.69C14.29 6.69 13.19 6 12 6c-2.21 0-4 1.79-4 4H6c0-3.31 2.69-6 6-6zm-6 8c0-1.09.29-2.12.79-3.01l1.7 1.43C7.74 11.36 7 12.64 7 14h2c0-1.66 1.34-3 3-3v2H7v-1zm11.7 2.35c-.38 1.88-1.49 3.55-3.07 4.63C13.79 19.64 12.91 20 12 20c-2.59 0-4.86-1.37-6.13-3.43l2-1.68C8.88 16.76 10.33 18 12 18c1.79 0 3.29-1.13 3.88-2.71h-3.88v-2h6.7c.04.27.07.54.07.81 0 1.94-.81 3.7-2.37 5.25z"/>
+              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
               </svg>
+              Google
             </Button>
-
-            <Button 
-              variant="outline" 
-              className="h-11"
-              onClick={() => handleSocialSignIn('Facebook')}
-              loading={isLoading}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleSocialSignIn("GitHub")}
+              disabled={isLoading}
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
+              <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
               </svg>
-            </Button>
-
-            <Button 
-              variant="outline" 
-              className="h-11"
-              onClick={() => handleSocialSignIn('Apple')}
-              loading={isLoading}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
-              </svg>
+              GitHub
             </Button>
           </div>
-        </div>
-
-        <div className="p-6 bg-muted/50 border-t">
-          <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <GetStartedDialog />
-          </p>
-        </div>
+          <div className="mt-4 text-center text-sm">
+            <span className="text-muted-foreground">Don't have an account? </span>
+            <Button
+              variant="link"
+              className="p-0 h-auto font-semibold"
+              onClick={() => {
+                if (onOpenChange) {
+                  onOpenChange(false);
+                } else {
+                  setIsOpen(false);
+                }
+                // Navigate to sign up or open sign up dialog
+              }}
+            >
+              Sign up
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

@@ -13,6 +13,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   currentUser: User | null;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -46,13 +47,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const register = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      // Here you would typically make an API call to your backend
+      // For demo purposes, we'll just simulate a delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Simulated registration success
+      setIsAuthenticated(true);
+      setCurrentUser({
+        email,
+        name: email.split('@')[0], // Simple name from email
+        preferences: {
+          cuisines: [],
+          dietaryRestrictions: []
+        }
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = () => {
     setIsAuthenticated(false);
     setCurrentUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, register, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
