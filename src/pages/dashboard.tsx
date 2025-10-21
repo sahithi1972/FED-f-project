@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { ScrollArea } from "../components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { StatisticPlaceholder, ActivityPlaceholder, AchievementPlaceholder } from "../components/ui/loading-placeholder";
 import { 
   ChefHat, 
   BookOpen,
@@ -72,8 +73,17 @@ const recentActivities = [
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [isLoading, setIsLoading] = useState(true);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Simulate loading delay
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -108,22 +118,27 @@ export default function Dashboard() {
         <TabsContent value="overview" className="space-y-6">
           {/* Statistics Grid */}
           <div className="grid gap-4 md:grid-cols-2">
-            {statistics.map((stat, index) => (
-              <Card key={index}>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {stat.title}
-                  </CardTitle>
-                  <stat.icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {stat.change}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+            {isLoading 
+              ? Array.from({ length: 4 }).map((_, index) => (
+                  <StatisticPlaceholder key={index} />
+                ))
+              : statistics.map((stat, index) => (
+                  <Card key={index}>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {stat.title}
+                      </CardTitle>
+                      <stat.icon className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{stat.value}</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {stat.change}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))
+            }
           </div>
 
           {/* Recent Activity */}
@@ -134,7 +149,12 @@ export default function Dashboard() {
             <CardContent>
               <ScrollArea className="h-[300px]">
                 <div className="space-y-4">
-                  {recentActivities.map((activity, index) => (
+                  {isLoading ? 
+                    Array.from({ length: 5 }).map((_, index) => (
+                      <ActivityPlaceholder key={index} />
+                    ))
+                   : 
+                    recentActivities.map((activity, index) => (
                     <div key={index} className="flex items-center gap-4">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                         <activity.icon className="h-4 w-4 text-primary" />
@@ -171,7 +191,12 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
-                {badges.map((badge: BadgeType, index) => (
+                {isLoading ? 
+                  Array.from({ length: 6 }).map((_, index) => (
+                    <AchievementPlaceholder key={index} />
+                  ))
+                 : 
+                  badges.map((badge: BadgeType, index) => (
                   <div
                     key={index}
                     className="flex items-center gap-4 rounded-lg border p-4"

@@ -48,7 +48,7 @@ const Hero = () => {
               onClick={() => scrollToSection('ingredient-search')}
             >
               <ChefHat className="h-5 w-5 mr-2" />
-              Find Recipes Now
+              Find Recipes
             </Button>
             <Button 
               variant="outline" 

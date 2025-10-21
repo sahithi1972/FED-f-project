@@ -38,7 +38,9 @@ export function GetStartedDialog() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="hero">Get Started</Button>
+        <Button variant="hero" loading={isLoading} loadingText="Getting Started...">
+          Get Started
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>

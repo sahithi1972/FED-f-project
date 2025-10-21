@@ -73,7 +73,7 @@ function IngredientSearch() {
   };
 
   return (
-    <section className="relative px-4 sm:px-6 lg:px-8 py-12 sm:py-20 bg-gradient-to-b from-background to-background/80">
+    <section id="ingredient-search" className="relative px-4 sm:px-6 lg:px-8 py-12 sm:py-20 bg-gradient-to-b from-background to-background/80">
       <div className="container mx-auto max-w-4xl">
         <div className="text-center mb-8">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">

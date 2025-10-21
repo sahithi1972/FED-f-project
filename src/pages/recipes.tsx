@@ -56,6 +56,7 @@ export default function RecipeSearch() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [timeRange, setTimeRange] = useState([30]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [selectedIngredients] = useState(["Tomatoes", "Onions", "Rice"]);
 
   return (
@@ -65,11 +66,25 @@ export default function RecipeSearch() {
         <div className="container flex h-16 items-center gap-4">
           <div className="flex items-center gap-2 flex-1">
             <Search className="h-5 w-5 text-muted-foreground" />
-            <input
-              type="search"
-              placeholder="Search recipes..."
-              className="flex-1 bg-transparent outline-none"
-            />
+            <div className="flex items-center gap-2 flex-1">
+              <input
+                type="search"
+                placeholder="Search recipes..."
+                className="flex-1 bg-transparent outline-none"
+              />
+              <Button
+                size="sm"
+                loading={isSearching}
+                loadingText="Searching..."
+                onClick={() => {
+                  setIsSearching(true);
+                  // Simulate search delay
+                  setTimeout(() => setIsSearching(false), 1000);
+                }}
+              >
+                Search
+              </Button>
+            </div>
           </div>
 
           {/* View Toggle & Filter Button (Mobile) */}

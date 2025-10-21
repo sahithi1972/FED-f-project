@@ -154,10 +154,12 @@ export function SignInDialog() {
             </div>
             <Button 
               type="submit" 
-              className="w-full h-11 text-base font-medium bg-[#2D7A3E] hover:bg-[#236830] text-white" 
-              disabled={isLoading}
+              className="w-full h-11 text-base font-medium" 
+              variant="hero"
+              loading={isLoading}
+              loadingText="Signing in..."
             >
-              {isLoading ? "Signing in..." : "Sign in"}
+              Sign in
             </Button>
           </form>
 
@@ -178,6 +180,7 @@ export function SignInDialog() {
               variant="outline" 
               className="h-11"
               onClick={() => handleSocialSignIn('Google')}
+              loading={isLoading}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5.35 5.35c1.56 1.56 2.37 3.61 2.37 5.65 0 .27-.03.54-.07.81h-6.89v-2.91h4.43c-.18-.88-.74-1.64-1.54-2.12l1.7-1.43zM12 4c2.04 0 3.92.7 5.41 1.87l-2.01 1.69C14.29 6.69 13.19 6 12 6c-2.21 0-4 1.79-4 4H6c0-3.31 2.69-6 6-6zm-6 8c0-1.09.29-2.12.79-3.01l1.7 1.43C7.74 11.36 7 12.64 7 14h2c0-1.66 1.34-3 3-3v2H7v-1zm11.7 2.35c-.38 1.88-1.49 3.55-3.07 4.63C13.79 19.64 12.91 20 12 20c-2.59 0-4.86-1.37-6.13-3.43l2-1.68C8.88 16.76 10.33 18 12 18c1.79 0 3.29-1.13 3.88-2.71h-3.88v-2h6.7c.04.27.07.54.07.81 0 1.94-.81 3.7-2.37 5.25z"/>
@@ -188,6 +191,7 @@ export function SignInDialog() {
               variant="outline" 
               className="h-11"
               onClick={() => handleSocialSignIn('Facebook')}
+              loading={isLoading}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
@@ -198,6 +202,7 @@ export function SignInDialog() {
               variant="outline" 
               className="h-11"
               onClick={() => handleSocialSignIn('Apple')}
+              loading={isLoading}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
