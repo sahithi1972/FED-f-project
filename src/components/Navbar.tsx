@@ -2,6 +2,8 @@ import { Button } from "./ui/button";
 import { Leaf, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
+import { SignInDialog } from "./SignInDialog";
+import { GetStartedDialog } from "./GetStartedDialog";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,8 +43,8 @@ const Navbar = () => {
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
             <ThemeToggle />
-            <Button variant="ghost">Sign In</Button>
-            <Button variant="hero">Get Started</Button>
+            <SignInDialog />
+            <GetStartedDialog />
           </div>
 
           {/* Mobile Menu Button */}
