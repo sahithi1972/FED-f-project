@@ -3,36 +3,55 @@ import { Leaf, ChefHat, TrendingDown, Sparkles } from "lucide-react";
 
 const Hero = () => {
   return (
-    <section className="relative overflow-hidden bg-gradient-hero py-20 md:py-32">
+    <section className="relative overflow-hidden bg-background py-20 md:py-32">
       <div className="container mx-auto px-4">
         <div className="flex flex-col items-center text-center space-y-8">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Reduce Food Waste by 80%</span>
-          </div>
-
           {/* Heading */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground max-w-4xl leading-tight">
-            Transform Leftovers into{" "}
-            <span className="bg-gradient-eco bg-clip-text text-transparent">Delicious Meals</span>
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-foreground leading-tight max-w-4xl">
+            Cook Smart with{" "}
+            <span className="text-[#34D399]">What You Have</span>
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl">
-            Turn your leftover ingredients into delicious meals. Get personalized recipes based on what you have, track waste reduction, and earn rewards for sustainable cooking.
+          <p className="text-lg md:text-xl text-[#34D399] max-w-2xl">
+            Transform your available ingredients into delicious meals. Smart cooking starts here.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Button variant="hero" size="lg" className="text-base">
-              <ChefHat className="h-5 w-5" />
+          <div className="flex flex-row gap-4 pt-4">
+            <Button 
+              size="lg" 
+              className="bg-[#34D399] hover:bg-[#34D399]/90 text-white font-medium px-8"
+            >
+              <ChefHat className="h-5 w-5 mr-2" />
               Start Cooking Smart
             </Button>
-            <Button variant="outline" size="lg" className="text-base">
-              <Leaf className="h-5 w-5" />
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="text-[#34D399] border-[#34D399] hover:bg-[#34D399]/10"
+            >
               Learn More
             </Button>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-8 pt-12 w-full max-w-3xl">
+            <div className="space-y-2">
+              <div className="text-3xl md:text-4xl font-bold text-[#34D399]">200+</div>
+              <div className="text-sm text-[#34D399]">Easy Recipes</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl md:text-4xl font-bold text-[#FFB800]">5kg</div>
+              <div className="text-sm text-[#34D399]">Avg. Waste Saved</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl md:text-4xl font-bold text-[#34D399]">
+                <TrendingDown className="inline h-8 w-8" />
+                80%
+              </div>
+              <div className="text-sm text-[#34D399]">Less Waste</div>
+            </div>
           </div>
 
           {/* Stats */}
