@@ -38,14 +38,14 @@ const Hero = () => {
               className="bg-[#34D399] hover:bg-[#34D399]/90 text-white font-medium px-8"
             >
               <ChefHat className="h-5 w-5 mr-2" />
-              Start Cooking Smart
+              Find Recipes Now
             </Button>
             <Button 
               variant="outline" 
               size="lg" 
               className="text-[#34D399] border-[#34D399] hover:bg-[#34D399]/10"
             >
-              Learn More
+              See How It Works
             </Button>
           </div>
 

@@ -1,9 +1,8 @@
 import { Button } from "./ui/button";
-import { Leaf, Menu, X } from "lucide-react";
+import { Leaf, Menu, X, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ThemeToggle } from "./ThemeToggle";
-import { SignInDialog } from "./SignInDialog";
-import { GetStartedDialog } from "./GetStartedDialog";
+import { AuthDialog } from "./AuthDialog";
 import { ArrowLeft } from "lucide-react";
 
 const Navbar = () => {
@@ -38,11 +37,10 @@ const Navbar = () => {
   };
 
   const menuItems = [
-    { label: "Features", href: "#features" },
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Recipes", href: "#recipes" },
-    { label: "Impact", href: "#impact" },
-    { label: "About", href: "#about" },
+    { label: "Home", href: "/" },
+    { label: "Recipes", href: "/recipes" },
+    { label: "Impact", href: "/impact" },
+    { label: "How It Works", href: "/how-it-works" },
   ];
 
   return (
@@ -92,9 +90,11 @@ const Navbar = () => {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
+            <Button variant="ghost" size="icon">
+              <Search className="h-5 w-5" />
+            </Button>
             <ThemeToggle />
-            <SignInDialog />
-            <GetStartedDialog />
+            <AuthDialog />
           </div>
 
           {/* Mobile Menu Button */}

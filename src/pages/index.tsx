@@ -7,6 +7,8 @@ import About from "../components/About";
 import ImpactDashboard from "../components/ImpactDashboard";
 import CTA from "../components/CTA";
 import Footer from "../components/Footer";
+import ChatButton from "../components/ChatButton";
+import { IngredientSearch } from "../components/IngredientSearch";
 
 const Index = () => {
   console.log('Rendering Index component');
@@ -15,6 +17,7 @@ const Index = () => {
       <Navbar />
       <main>
         <Hero />
+        <IngredientSearch />
         <Features />
         <HowItWorks />
         <Recipes />
@@ -23,6 +26,7 @@ const Index = () => {
         <CTA />
       </main>
       <Footer />
+      <ChatButton />
     </div>
   );
 };
