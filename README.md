@@ -1,73 +1,114 @@
-# Welcome to your Lovable project
+# ZeroWasteChef 🥘
 
-## Project info
+A modern recipe application focused on reducing food waste by helping users discover recipes based on available ingredients and dietary preferences.
 
-**URL**: https://lovable.dev/projects/b31463af-c723-44c7-b58b-1792e6e2384e
+## Features 🌟
 
-## How can I edit this code?
+- **Smart Recipe Search**
+  - Search by available ingredients
+  - Filter by cuisine, cooking time, and dietary restrictions
+  - Advanced sorting options (relevance, cooking time, rating)
 
-There are several ways of editing your application.
+- **User Authentication**
+  - Email/Password login
+  - Social login options (Google, GitHub)
+  - Remember me functionality
 
-**Use Lovable**
+- **Responsive UI**
+  - Grid and List view modes
+  - Skeleton loading states
+  - Smooth animations and transitions
+  - Mobile-friendly design
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b31463af-c723-44c7-b58b-1792e6e2384e) and start prompting.
+- **Accessibility**
+  - ARIA labels
+  - Keyboard navigation
+  - Screen reader support
+  - High contrast mode
 
-Changes made via Lovable will be committed automatically to this repo.
+## Technology Stack 💻
 
-**Use your preferred IDE**
+### Frontend
+- React + TypeScript
+- Vite for build tooling
+- TailwindCSS for styling
+- shadcn/ui for UI components
+- React Hook Form for form management
+- Zod for validation
+- Framer Motion for animations
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Planned Backend Features
+- RESTful API for recipe and user management
+- Database for storing recipes and user data
+- ML model for recipe recommendations
+- Image recognition for ingredient identification
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Getting Started 🚀
 
-Follow these steps:
+1. **Prerequisites**
+   ```bash
+   node.js >= 18.0.0
+   npm >= 9.0.0
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2. **Installation**
+   ```bash
+   # Clone the repository
+   git clone https://github.com/sahithi1972/FED-f-project.git
+   cd z-wchef
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+   # Install dependencies
+   npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
+   # Start development server
+   npm run dev
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+3. **Development**
+   ```bash
+   # Run tests
+   npm test
+
+   # Build for production
+   npm run build
+   ```
+
+## Project Structure 📁
+
+```
+src/
+├── components/        # Reusable UI components
+├── contexts/         # React Context providers
+├── hooks/           # Custom React hooks
+├── lib/             # Utility functions and constants
+├── pages/           # Route components
+└── types/           # TypeScript type definitions
 ```
 
-**Edit a file directly in GitHub**
+## Current Status 📊
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- ✅ Frontend UI implementation
+- ✅ Component architecture
+- ✅ Form validation
+- ✅ Responsive design
+- 🔄 Component testing (in progress)
+- 📝 Error boundaries (planned)
+- 📝 Backend integration (planned)
+- 📝 ML model integration (planned)
 
-**Use GitHub Codespaces**
+## Contributing 🤝
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. Fork the repository
+2. Create a new branch
+3. Make your changes
+4. Submit a pull request
 
-## What technologies are used for this project?
+## License 📄
 
-This project is built with:
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Acknowledgments 🙏
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/b31463af-c723-44c7-b58b-1792e6e2384e) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- shadcn/ui for the beautiful component library
+- Radix UI for accessible primitives
+- Tailwind CSS for the utility-first CSS framework
