@@ -3,6 +3,8 @@ import { Search, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "./ui/use-toast";
 
 type Ingredient = {
   name: string;
@@ -18,10 +20,24 @@ const popularIngredients: Ingredient[] = [
   { name: "Spinach", icon: "🥬" },
 ];
 
-export function IngredientSearch() {
+function IngredientSearch() {
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [suggestions, setSuggestions] = useState<Ingredient[]>([]);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleFindRecipes = () => {
+    if (selectedIngredients.length === 0) {
+      toast({
+        title: "No ingredients selected",
+        description: "Please add at least one ingredient"
+      });
+      return;
+    }
+
+    navigate(`/recipes?ingredients=${selectedIngredients.join(",")}`);
+  };
 
   const handleIngredientAdd = (ingredient: string) => {
     if (selectedIngredients.length >= 10 || selectedIngredients.includes(ingredient)) {
@@ -82,7 +98,11 @@ export function IngredientSearch() {
           />
 
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <Button variant="default" className="bg-emerald-500 hover:bg-emerald-600">
+            <Button 
+              variant="default" 
+              className="bg-emerald-500 hover:bg-emerald-600"
+              onClick={handleFindRecipes}
+            >
               Find Recipes →
             </Button>
           </div>

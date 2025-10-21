@@ -1,5 +1,9 @@
 import { Button } from "./ui/button";
 import { ArrowRight, Plus, Search, ChefHat, Trophy } from "lucide-react";
+import { useAuth } from "../contexts/auth-context";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { SignInDialog } from "./SignInDialog";
 
 const steps = [
   {
@@ -29,6 +33,18 @@ const steps = [
 ];
 
 const HowItWorks = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [isShowingSignIn, setIsShowingSignIn] = useState(false);
+
+  const handleStartCooking = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      setIsShowingSignIn(true);
+    }
+  };
+
   return (
     <section id="how-it-works" className="relative py-20 overflow-hidden bg-white dark:bg-background">
       {/* Gradient Background */}
@@ -100,14 +116,19 @@ const HowItWorks = () => {
           ))}
         </div>
 
-        <div className="text-center">
-          <Button 
-            size="lg"
-            className="bg-gradient-to-r from-[#34D399] to-[#FFB800] text-white hover:opacity-90 transition-opacity px-8 py-6 text-lg font-medium shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-          >
-            Get Started Now
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+        <div className="text-center mt-12">
+          {isShowingSignIn ? (
+            <SignInDialog />
+          ) : (
+            <Button 
+              size="lg"
+              className="bg-[#2D7A3E] text-white px-8 py-4 rounded-lg font-semibold shadow-lg hover:scale-105 transition-transform duration-300"
+              onClick={handleStartCooking}
+            >
+              Start Cooking Free
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          )}
         </div>
       </div>
     </section>

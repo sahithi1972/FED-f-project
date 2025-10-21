@@ -4,6 +4,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/auth-context";
 import Index from "./pages/index";
 import NotFound from "./pages/Notfound";
+import Recipes from "./pages/recipes";
+import Dashboard from "./pages/dashboard";
+import Profile from "./pages/profile";
+import HowItWorks from "./pages/how-it-works";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +52,16 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <AuthProvider>
         <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/recipes" element={<Recipes />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />

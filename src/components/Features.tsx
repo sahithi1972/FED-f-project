@@ -9,7 +9,7 @@ const features = [
   {
     icon: Package,
     title: "Ingredient Management",
-    description: "Track your pantry and get alerts before ingredients expire to reduce waste.",
+    description: "Smart ingredient tracking to help you cook efficiently and reduce waste.",
   },
   {
     icon: Wallet,

@@ -2,6 +2,15 @@ import { Button } from "./ui/button";
 import { Leaf, ChefHat, TrendingDown, Sparkles } from "lucide-react";
 
 const Hero = () => {
+  const scrollToSection = (elementId: string) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
   return (
     <section className="relative overflow-hidden py-20 md:py-32">
       {/* Background Video */}
@@ -36,6 +45,7 @@ const Hero = () => {
             <Button 
               size="lg" 
               className="bg-[#34D399] hover:bg-[#34D399]/90 text-white font-medium px-8"
+              onClick={() => scrollToSection('ingredient-search')}
             >
               <ChefHat className="h-5 w-5 mr-2" />
               Find Recipes Now
@@ -44,6 +54,7 @@ const Hero = () => {
               variant="outline" 
               size="lg" 
               className="text-[#34D399] border-[#34D399] hover:bg-[#34D399]/10"
+              onClick={() => scrollToSection('how-it-works')}
             >
               See How It Works
             </Button>
