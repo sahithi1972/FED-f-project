@@ -3,17 +3,31 @@ import { Leaf, ChefHat, TrendingDown, Sparkles } from "lucide-react";
 
 const Hero = () => {
   return (
-    <section className="relative overflow-hidden bg-background py-20 md:py-32">
-      <div className="container mx-auto px-4">
+    <section className="relative overflow-hidden py-20 md:py-32">
+      {/* Background Video */}
+      <div className="absolute inset-0 w-full h-full">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        >
+          <source src="/images/gif.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-black/30 dark:bg-black/50" />
+      </div>
+      
+      <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col items-center text-center space-y-8">
           {/* Heading */}
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-foreground leading-tight max-w-4xl">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-tight max-w-4xl">
             Cook Smart with{" "}
             <span className="text-[#34D399]">What You Have</span>
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg md:text-xl text-[#34D399] max-w-2xl">
+          <p className="text-lg md:text-xl text-[#34D399] max-w-2xl font-medium">
             Transform your available ingredients into delicious meals. Smart cooking starts here.
           </p>
 
@@ -51,24 +65,6 @@ const Hero = () => {
                 80%
               </div>
               <div className="text-sm text-[#34D399]">Less Waste</div>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-8 pt-12 w-full max-w-3xl">
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-primary">200+</div>
-              <div className="text-sm text-muted-foreground">Easy Recipes</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-secondary">5kg</div>
-              <div className="text-sm text-muted-foreground">Avg. Waste Saved</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-accent">
-                <TrendingDown className="inline h-8 w-8" />
-              </div>
-              <div className="text-sm text-muted-foreground">80% Less Waste</div>
             </div>
           </div>
         </div>
