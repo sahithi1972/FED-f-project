@@ -76,19 +76,6 @@ const Navbar = () => {
       href: "/dashboard",
       requiresAuth: true 
     },
-    { 
-      label: "How It Works", 
-      href: "#how-it-works",
-      onClick: () => {
-        if (location.pathname === '/') {
-          const section = document.getElementById('how-it-works');
-          section?.scrollIntoView({ behavior: 'smooth' });
-        } else {
-          // If not on homepage, navigate to homepage and then scroll
-          window.location.href = '/#how-it-works';
-        }
-      }
-    },
   ];
 
   return (

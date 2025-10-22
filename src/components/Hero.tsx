@@ -21,7 +21,7 @@ const Hero = () => {
     <section 
       ref={setRef}
       id="hero" 
-      className="relative min-h-[90vh] flex items-center justify-center overflow-hidden py-20 md:py-32"
+      className="relative min-h-[90vh] flex items-center justify-center overflow-hidden py-24 md:py-32"
       aria-label="Welcome to Zero Waste Chef"
     >
       {/* Background Video */}
@@ -43,7 +43,7 @@ const Hero = () => {
         >
           <source src="/images/gif.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
+        <div className="absolute inset-0 bg-black/50 dark:bg-black/60" />
       
       </div>
 
@@ -52,7 +52,7 @@ const Hero = () => {
           isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
         }`}>
           {/* Heading */}
-          <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-tight max-w-4xl tracking-tight">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white leading-tight max-w-4xl tracking-tight [text-shadow:_2px_2px_4px_rgb(0_0_0_/_20%)]">
             Cook Smart with{" "}
             <span className="bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">
               What You Have
@@ -60,16 +60,16 @@ const Hero = () => {
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg md:text-xl text-emerald-400 max-w-2xl font-medium px-4 transition-all duration-500 delay-150">
+          <p className="text-xl md:text-2xl text-emerald-400 max-w-2xl font-medium px-4 transition-all duration-500 delay-150 mb-6">
             Transform your available ingredients into delicious meals. Smart cooking starts here.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4 pt-4 px-4 transition-all duration-500 delay-300">
+          <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4 px-4 mb-12 transition-all duration-500 delay-300">
             <Button 
               size="lg" 
               variant="hero"
-              className="w-full sm:w-auto relative overflow-hidden group"
+              className="w-full sm:w-auto min-w-[200px] relative overflow-hidden group hover:scale-105 transition-all duration-300 px-10 py-4"
               onClick={() => scrollToSection('ingredient-search')}
             >
               <ChefHat className="h-5 w-5 mr-2 transition-transform duration-300 group-hover:rotate-12" />
@@ -78,7 +78,7 @@ const Hero = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="w-full sm:w-auto text-emerald-400 border-emerald-400/50 hover:bg-emerald-400/10 transition-colors duration-300"
+              className="w-full sm:w-auto min-w-[200px] text-emerald-400 border-3 border-emerald-400/50 hover:bg-emerald-400/10 transition-all duration-300 px-10 py-4"
               onClick={() => scrollToSection('how-it-works')}
             >
               See How It Works
@@ -114,11 +114,6 @@ const Hero = () => {
       {/* Decorative elements */}
       <div className="absolute top-20 left-10 w-32 h-32 bg-emerald-500/20 dark:bg-emerald-500/10 rounded-full blur-3xl animate-blob"></div>
       <div className="absolute bottom-20 right-10 w-40 h-40 bg-amber-500/20 dark:bg-amber-500/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-      
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-emerald-400/80 animate-bounce">
-        <ArrowDown className="h-6 w-6" />
-      </div>
     </section>
   );
 };

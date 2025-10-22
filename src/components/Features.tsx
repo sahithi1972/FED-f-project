@@ -40,28 +40,30 @@ const Features = () => {
     <section 
       ref={setRef}
       id="features" 
-      className="py-20 sm:py-32 relative overflow-hidden"
+      className="py-20 md:py-28 relative overflow-hidden bg-gradient-to-b from-background via-background/98 to-background"
       aria-labelledby="features-title"
     >
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-emerald-50/20 to-white dark:from-background dark:via-emerald-950/10 dark:to-background"></div>
-      <div className="absolute inset-0">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-amber-500/5 dark:bg-amber-500/10 rounded-full blur-3xl"></div>
+      {/* Subtle decorative background */}
+      <div className="absolute inset-0 opacity-[0.02]">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, rgb(22 163 74 / 0.15) 1px, transparent 0)`,
+          backgroundSize: '48px 48px',
+        }}></div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className={`text-center mb-16 transition-all duration-700 ${
           isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}>
           <h2 
             id="features-title"
-            className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-emerald-600 to-emerald-500 dark:from-emerald-400 dark:to-emerald-500 bg-clip-text text-transparent"
+            className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-400 dark:from-emerald-300 dark:via-emerald-400 dark:to-emerald-300 bg-clip-text text-transparent leading-tight tracking-tight antialiased"
+            style={{ textRendering: 'geometricPrecision' }}
           >
-            Smart Features, <br className="sm:hidden" />
-            Better Cooking
+            Smart Features, Better Cooking
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <div className="w-24 h-1.5 bg-gradient-to-r from-emerald-500/30 via-emerald-400/40 to-emerald-500/30 dark:from-emerald-400/30 dark:via-emerald-300/40 dark:to-emerald-400/30 rounded-full mx-auto mb-10 blur-[0.5px]"></div>
+          <p className="text-lg md:text-xl text-muted-foreground/90 max-w-2xl mx-auto font-medium antialiased">
             Our AI-powered platform helps you cook smarter, waste less, and save more
           </p>
         </div>
@@ -80,13 +82,13 @@ const Features = () => {
               aria-labelledby={`feature-title-${index}`}
             >
               {/* Card Background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white to-white/80 dark:from-gray-900 dark:to-gray-900/90 rounded-2xl shadow-md backdrop-blur-sm"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/90 to-white/70 dark:from-gray-900/90 dark:to-gray-900/70 rounded-2xl shadow-md backdrop-blur-sm group-hover:shadow-xl group-hover:shadow-emerald-500/5 dark:group-hover:shadow-emerald-400/5 transition-all duration-500"></div>
 
               {/* Card Content */}
-              <div className="relative p-6 sm:p-8 rounded-2xl overflow-hidden border border-emerald-200/20 dark:border-emerald-800/20">
+              <div className="relative p-6 sm:p-8 rounded-2xl border border-emerald-200/20 dark:border-emerald-800/20 group-hover:border-emerald-500/30 dark:group-hover:border-emerald-400/30 transition-all duration-500">
                 {/* Gradient Border Effect */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-amber-500/20 rounded-2xl"></div>
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500">
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-emerald-500/5 dark:from-emerald-400/10 dark:via-transparent dark:to-emerald-400/5 rounded-2xl"></div>
                 </div>
 
                 {/* Icon */}
@@ -99,11 +101,12 @@ const Features = () => {
                 {/* Content */}
                 <h3 
                   id={`feature-title-${index}`}
-                  className="text-xl font-bold text-center mb-3 text-gray-900 dark:text-white"
+                  className="relative text-xl font-semibold text-center mb-3 text-gray-900 dark:text-gray-100 tracking-normal min-h-[28px] px-2"
+                  style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
                 >
                   {feature.title}
                 </h3>
-                <p className="text-muted-foreground text-center leading-relaxed">
+                <p className="text-muted-foreground text-center leading-relaxed [word-spacing:0.5px]">
                   {feature.description}
                 </p>
               </div>
