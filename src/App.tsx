@@ -14,9 +14,11 @@ import NotFound from "./pages/Notfound";
 import HowItWorks from "./pages/how-it-works";
 
 // Lazy loaded routes
-const LazyDashboard = React.lazy(() => import("./pages/dashboard"));
-const LazyProfile = React.lazy(() => import("./pages/profile"));
-const LazyRecipes = React.lazy(() => import("./pages/recipes"));
+const LazyDashboard = React.lazy(() => import("@/pages/dashboard"));
+const LazyProfile = React.lazy(() => import("@/pages/profile"));
+const LazyRecipes = React.lazy(() => import("@/pages/recipes"));
+const LazyRecipeResults = React.lazy(() => import("@/components/RecipeResultsPage"));
+const LazyMyRecipes = React.lazy(() => import("@/pages/my-recipes"));
 
 const queryClient = new QueryClient();
 
@@ -24,6 +26,15 @@ function LoadingFallback() {
   return (
     <div className="min-h-[50vh] flex items-center justify-center">
       <Spinner size="lg" />
+    </div>
+  );
+}
+
+function LazyFallback() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center flex-col gap-4">
+      <Spinner size="lg" />
+      <p className="text-muted-foreground">Loading page...</p>
     </div>
   );
 }
@@ -76,6 +87,30 @@ function AnimatedRoutes() {
             <PageTransition>
               <React.Suspense fallback={<LoadingFallback />}>
                 <LazyRecipes />
+              </React.Suspense>
+            </PageTransition>
+          } 
+        />
+        <Route 
+          path="/my-recipes" 
+          element={
+            <ProtectedRoute>
+              <PageTransition>
+                <React.Suspense fallback={<LoadingFallback />}>
+                  <LazyMyRecipes />
+                </React.Suspense>
+              </PageTransition>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/recipes/results" 
+          element={
+            <PageTransition>
+              <React.Suspense fallback={<LoadingFallback />}>
+                <ErrorBoundary>
+                  <LazyRecipeResults />
+                </ErrorBoundary>
               </React.Suspense>
             </PageTransition>
           } 

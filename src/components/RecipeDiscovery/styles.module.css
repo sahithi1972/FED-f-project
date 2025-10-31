@@ -1,0 +1,101 @@
+/* RecipeDiscovery theme variables */
+.recipeSection {
+  --recipe-primary: #16a34a;
+  --recipe-primary-hover: #15803d;
+  --recipe-bg: #ffffff;
+  --recipe-card-bg: #f8fafc;
+  --recipe-text: #334155;
+  --recipe-muted: #94a3b8;
+  --recipe-border: #e2e8f0;
+
+  /* Animation constants */
+  --recipe-transition: all 0.2s ease-in-out;
+  --recipe-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* Dark mode overrides are handled via JS for smooth transitions */
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  background-color: var(--recipe-bg);
+  color: var(--recipe-text);
+}
+
+/* Recipe card styles */
+.recipeCard {
+  background-color: var(--recipe-card-bg);
+  border: 1px solid var(--recipe-border);
+  transition: var(--recipe-transition);
+}
+
+.recipeCard:hover {
+  border-color: var(--recipe-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Quick filter chip styles */
+.quickFilter {
+  background-color: var(--recipe-card-bg);
+  border: 1px solid var(--recipe-border);
+  color: var(--recipe-text);
+  transition: var(--recipe-transition);
+}
+
+.quickFilter:hover {
+  border-color: var(--recipe-primary);
+  background-color: color-mix(in srgb, var(--recipe-primary) 10%, transparent);
+}
+
+.quickFilter[data-active="true"] {
+  background-color: var(--recipe-primary);
+  border-color: var(--recipe-primary);
+  color: white;
+}
+
+/* Loading states */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--recipe-card-bg) 25%,
+    color-mix(in srgb, var(--recipe-border) 10%, var(--recipe-card-bg)) 50%,
+    var(--recipe-card-bg) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Animations */
+.fadeIn {
+  animation: fadeIn 0.3s var(--recipe-bounce);
+}
+
+.slideUp {
+  animation: slideUp 0.3s var(--recipe-bounce);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

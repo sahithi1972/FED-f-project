@@ -1,14 +1,23 @@
+// COPILOT:
+// Convert recipe grid into a responsive layout:
+// - grid-cols-1 on mobile
+// - grid-cols-2 on tablets
+// - grid-cols-3 on desktop
+// Add gap-6 and proper padding.
+// Do not change how recipes are mapped or passed.
+
+
 import { type Recipe } from "@/types/recipe";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { RecipeFilters, type RecipeFilters as RecipeFiltersType } from "./RecipeFilters";
+import { RecipeFilters, type RecipeFilters as RecipeFiltersType, defaultFilters } from "./RecipeFilters";
 import { RecipeCard } from "./RecipeCard";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { ScrollArea } from "./ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { useRecipeSearch } from "@/hooks/use-recipe-search";
-import { RecipeGridSkeleton } from "./RecipeSkeleton";
+import { useRecipeSearch } from "../hooks/use-recipe-search";
+import { RecipeGridSkeleton } from "./RecipeGridSkeleton";
 import { FadeIn, FadeInStagger, FadeInStaggerItem, GridTransition } from "./ui/animations";
 
 // Mock data - replace with actual data from your API
@@ -17,17 +26,19 @@ const mockRecipes: Recipe[] = Array.from({ length: 12 }, (_, i) => ({
   title: ["Spicy Paneer Tikka", "Butter Chicken", "Vegetable Biryani", "Masala Dosa", 
          "Palak Paneer", "Dal Makhani", "Chole Bhature", "Tandoori Roti", 
          "Malai Kofta", "Samosa", "Pav Bhaji", "Gulab Jamun"][i],
-  image: `/images/recipes/recipe-${i + 1}.jpg`,
+  description: "A delicious Indian recipe with authentic flavors.",
+  imageUrl: `/images/recipes/recipe-${i + 1}.jpg`,
   cookingTime: [15, 30, 45, 60][Math.floor(Math.random() * 4)],
-  difficulty: ["Easy", "Medium", "Hard"][Math.floor(Math.random() * 3)],
+  difficulty: ["easy", "medium", "hard"][Math.floor(Math.random() * 3)] as "easy" | "medium" | "hard",
   rating: 3 + Math.random() * 2,
-  cuisineType: ["Indian", "Chinese", "Italian", "Mexican"][Math.floor(Math.random() * 4)],
-  dietaryPreferences: [
+  cuisine: ["Indian", "Chinese", "Italian", "Mexican"][Math.floor(Math.random() * 4)],
+  dietary: [
     ["Vegetarian"],
     ["Non-Vegetarian"],
     ["Vegan"],
     ["Vegetarian", "Gluten-Free"],
   ][Math.floor(Math.random() * 4)],
+  ingredients: ["Ingredient 1", "Ingredient 2", "Ingredient 3"],
   isFavorite: false,
 }));
 
@@ -39,9 +50,9 @@ export function RecipesGrid() {
     isLoading,
     filteredRecipes,
     handleSearch: onSearch,
-    handleFilters: onFilters,
-    handleSort: onSort,
-  } = useRecipeSearch({ recipes: mockRecipes });
+    handleFilterChange: onFilters,
+    handleSortChange: onSort,
+  } = useRecipeSearch(mockRecipes);
 
   const handleFavoriteToggle = (id: string) => {
     // In a real app, this would be handled by the API
@@ -54,19 +65,27 @@ export function RecipesGrid() {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex w-full items-center gap-2 md:w-[400px]">
-          <div className="relative flex-1">
-            <Search className={`absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors ${isLoading ? "text-primary" : "text-muted-foreground"}`} />
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
             <Input
+              type="search"
               placeholder="Search recipes..."
               value={search}
               onChange={(e) => onSearch(e.target.value)}
-              className="pl-8"
-              disabled={isLoading}
+              className="w-full"
             />
           </div>
+          <Select value={sortBy} onValueChange={onSort}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="rating">Highest Rated</SelectItem>
+              <SelectItem value="cookingTime">Cooking Time</SelectItem>
+            </SelectContent>
+          </Select>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="shrink-0 md:hidden">
@@ -86,63 +105,49 @@ export function RecipesGrid() {
             </SheetContent>
           </Sheet>
         </div>
-        <div className="flex items-center gap-2">
-          <Select value={sortBy} onValueChange={onSort}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort by..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="relevance">Most Relevant</SelectItem>
-              <SelectItem value="rating">Highest Rated</SelectItem>
-              <SelectItem value="time-asc">Cooking Time (Low to High)</SelectItem>
-              <SelectItem value="time-desc">Cooking Time (High to Low)</SelectItem>
-              <SelectItem value="newest">Newest First</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
-      <div className="grid gap-6 md:grid-cols-[300px_1fr]">
-        <aside className="hidden md:block">
-          <FadeIn>
-                          <RecipeFilters onFiltersChange={onFilters} />
-          </FadeIn>
-        </aside>
-        <main>
-          {isLoading ? (
+        <div className="grid gap-6 md:grid-cols-[300px_1fr]">
+          <aside className="hidden md:block">
             <FadeIn>
-              <RecipeGridSkeleton />
+              <RecipeFilters onFiltersChange={onFilters} />
             </FadeIn>
-          ) : filteredRecipes.length === 0 ? (
-            <FadeIn>
-              <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed p-8 text-center">
-                <div className="text-2xl font-semibold">No recipes found</div>
-                <p className="text-muted-foreground">
-                  Try adjusting your search or filters to find what you're looking for.
-                </p>
-                <Button variant="outline" onClick={() => onFilters(null)}>
-                  Clear all filters
-                </Button>
-              </div>
-            </FadeIn>
-          ) : (
-            <GridTransition>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <FadeInStagger>
-                  {filteredRecipes.map((recipe) => (
-                    <FadeInStaggerItem key={recipe.id}>
-                      <RecipeCard
-                        recipe={recipe}
-                        onFavoriteToggle={handleFavoriteToggle}
-                        onClick={handleRecipeClick}
-                      />
-                    </FadeInStaggerItem>
-                  ))}
-                </FadeInStagger>
-              </div>
-            </GridTransition>
-          )}
-        </main>
+          </aside>
+          <main>
+            {isLoading ? (
+              <FadeIn>
+                <RecipeGridSkeleton count={12} />
+              </FadeIn>
+            ) : filteredRecipes.length === 0 ? (
+              <FadeIn>
+                <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed p-8 text-center">
+                  <div className="text-2xl font-semibold">No recipes found</div>
+                  <p className="text-muted-foreground">
+                    Try adjusting your search or filters to find what you're looking for.
+                  </p>
+                  <Button variant="outline" onClick={() => onFilters(defaultFilters)}>
+                    Clear all filters
+                  </Button>
+                </div>
+              </FadeIn>
+            ) : (
+              <GridTransition>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  <FadeInStagger>
+                    {filteredRecipes.map((recipe) => (
+                      <FadeInStaggerItem key={recipe.id}>
+                        <RecipeCard
+                          recipe={recipe}
+                          onFavoriteToggle={handleFavoriteToggle}
+                          onClick={handleRecipeClick}
+                        />
+                      </FadeInStaggerItem>
+                    ))}
+                  </FadeInStagger>
+                </div>
+              </GridTransition>
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );

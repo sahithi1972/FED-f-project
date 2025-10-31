@@ -76,6 +76,11 @@ const Navbar = () => {
       href: "/dashboard",
       requiresAuth: true 
     },
+    {
+      label: "My Recipes",
+      href: "/my-recipes",
+      requiresAuth: true
+    },
   ];
 
   return (

@@ -1,104 +1,90 @@
-import { useState, useCallback, useMemo } from "react";
-import type { Recipe } from "@/types/recipe";
-import type { RecipeFilters } from "@/components/RecipeFilters";
+import { useState, useEffect, useCallback } from 'react';
+import { Recipe } from '@/types/recipe';
+import { RecipeFilters } from '@/components/RecipeFilters';
 
-interface UseRecipeSearchProps {
-  recipes: Recipe[];
-  defaultSort?: string;
-}
-
-export function useRecipeSearch({ recipes, defaultSort = "relevance" }: UseRecipeSearchProps) {
-  const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState<RecipeFilters | null>(null);
-  const [sortBy, setSortBy] = useState(defaultSort);
+export function useRecipeSearch(initialRecipes: Recipe[]) {
+  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState<RecipeFilters>({
+    cookingTime: [5, 60],
+    difficulty: "",
+    budget: "",
+    cuisineTypes: [],
+    dietaryPreferences: [],
+    mealTypes: [],
+    cookingMethods: [],
+    seasonal: "all",
+  });
+  const [sortBy, setSortBy] = useState<'rating' | 'cookingTime'>('rating');
   const [isLoading, setIsLoading] = useState(false);
+  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>(initialRecipes);
 
-  const filteredRecipes = useMemo(() => {
-    let result = [...recipes];
+  const filterRecipes = useCallback(() => {
+    setIsLoading(true);
+    let results = [...initialRecipes];
 
-    // Apply search
-    if (search.trim()) {
-      const searchLower = search.toLowerCase();
-      result = result.filter((recipe) =>
-        recipe.title.toLowerCase().includes(searchLower) ||
-        recipe.cuisineType.toLowerCase().includes(searchLower) ||
-        recipe.dietaryPreferences.some(pref => 
-          pref.toLowerCase().includes(searchLower)
-        )
+    // Apply search filter
+    if (search) {
+      results = results.filter(recipe =>
+        recipe.title.toLowerCase().includes(search.toLowerCase()) ||
+        recipe.description.toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    // Apply filters
-    if (filters) {
-      // Time range
-      if (filters.cookingTime.length === 2) {
-        result = result.filter(
-          (recipe) =>
-            recipe.cookingTime >= filters.cookingTime[0] &&
-            recipe.cookingTime <= filters.cookingTime[1]
-        );
-      }
+    // Apply cuisine filter
+    if (filters.cuisineTypes.length > 0) {
+      results = results.filter(recipe =>
+        filters.cuisineTypes.includes(recipe.cuisine)
+      );
+    }
 
-      // Difficulty
-      if (filters.difficulty) {
-        result = result.filter(
-          (recipe) =>
-            recipe.difficulty.toLowerCase() === filters.difficulty.toLowerCase()
-        );
-      }
+    // Apply dietary filter
+    if (filters.dietaryPreferences.length > 0) {
+      results = results.filter(recipe =>
+        filters.dietaryPreferences.some(pref => recipe.dietary.includes(pref))
+      );
+    }
 
-      // Cuisine types
-      if (filters.cuisineTypes.length > 0) {
-        result = result.filter((recipe) =>
-          filters.cuisineTypes.includes(recipe.cuisineType)
-        );
-      }
+    // Apply difficulty filter
+    if (filters.difficulty) {
+      results = results.filter(recipe =>
+        recipe.difficulty === filters.difficulty
+      );
+    }
 
-      // Dietary preferences
-      if (filters.dietaryPreferences.length > 0) {
-        result = result.filter((recipe) =>
-          filters.dietaryPreferences.some((pref) =>
-            recipe.dietaryPreferences.includes(pref)
-          )
-        );
-      }
-
-      // Other filters can be added here...
+    // Apply cooking time filter
+    if (filters.cookingTime) {
+      const [min, max] = filters.cookingTime;
+      results = results.filter(recipe =>
+        recipe.cookingTime >= min && recipe.cookingTime <= max
+      );
     }
 
     // Apply sorting
-    switch (sortBy) {
-      case "rating":
-        result.sort((a, b) => b.rating - a.rating);
-        break;
-      case "time-asc":
-        result.sort((a, b) => a.cookingTime - b.cookingTime);
-        break;
-      case "time-desc":
-        result.sort((a, b) => b.cookingTime - a.cookingTime);
-        break;
-      // Add more sorting options as needed
-    }
+    results.sort((a, b) => {
+      if (sortBy === 'rating') {
+        return b.rating - a.rating;
+      } else {
+        return a.cookingTime - b.cookingTime;
+      }
+    });
 
-    return result;
-  }, [recipes, search, filters, sortBy]);
+    setFilteredRecipes(results);
+    setIsLoading(false);
+  }, [search, filters, sortBy, initialRecipes]);
 
-  const handleSearch = useCallback(async (value: string) => {
-    setIsLoading(true);
-    try {
-      setSearch(value);
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 300));
-    } finally {
-      setIsLoading(false);
-    }
+  useEffect(() => {
+    filterRecipes();
+  }, [filterRecipes]);
+
+  const handleSearch = useCallback((value: string) => {
+    setSearch(value);
   }, []);
 
-  const handleFilters = useCallback((newFilters: RecipeFilters) => {
+  const handleFilterChange = useCallback((newFilters: RecipeFilters) => {
     setFilters(newFilters);
   }, []);
 
-  const handleSort = useCallback((value: string) => {
+  const handleSortChange = useCallback((value: 'rating' | 'cookingTime') => {
     setSortBy(value);
   }, []);
 
@@ -109,7 +95,7 @@ export function useRecipeSearch({ recipes, defaultSort = "relevance" }: UseRecip
     isLoading,
     filteredRecipes,
     handleSearch,
-    handleFilters,
-    handleSort,
+    handleFilterChange,
+    handleSortChange,
   };
 }

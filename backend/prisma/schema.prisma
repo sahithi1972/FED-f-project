@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String
+  name         String
+  profileImage String?
+  role         UserRole @default(USER)
+  
+  // Preferences
+  dietaryPreferences String[] // Stored as JSON array
+  cuisinePreferences String[] // Stored as JSON array
+  
+  // Stats
+  recipesCreated Int    @default(0)
+  totalLikes     Int    @default(0)
+  impactScore    Float  @default(0)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  recipes      Recipe[]
+  badges       UserBadge[]
+  impactLogs   ImpactLog[]
+  likedRecipes RecipeLike[]
+  savedRecipes RecipeSave[]
+  achievements UserAchievement[]
+  
+  @@map("users")
+}
+
+model Recipe {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  cookingTime Int      // in minutes
+  difficulty  Difficulty
+  servings    Int
+  status      RecipeStatus @default(DRAFT)
+  
+  // Images
+  mainImage   String?
+  
+  // Stats
+  views      Int @default(0)
+  likes      Int @default(0)
+  saves      Int @default(0)
+  completions Int @default(0)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ingredients RecipeIngredient[]
+  steps      RecipeStep[]
+  tags       RecipeTag[]
+  likesRelation RecipeLike[]
+  savesRelation RecipeSave[]
+  
+  @@map("recipes")
+}
+
+model RecipeIngredient {
+  id              String  @id @default(cuid())
+  recipeId        String
+  name            String
+  quantity        Float
+  unit            String
+  wastageReduction Float?  @default(0) // Percentage of waste reduced
+  
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  
+  @@map("recipe_ingredients")
+}
+
+model RecipeStep {
+  id          String @id @default(cuid())
+  recipeId    String
+  order       Int
+  description String
+  image       String?
+  
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  
+  @@map("recipe_steps")
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  color String?
+  
+  recipes RecipeTag[]
+  
+  @@map("tags")
+}
+
+model RecipeTag {
+  id       String @id @default(cuid())
+  recipeId String
+  tagId    String
+  
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([recipeId, tagId])
+  @@map("recipe_tags")
+}
+
+model RecipeLike {
+  id       String @id @default(cuid())
+  userId   String
+  recipeId String
+  
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, recipeId])
+  @@map("recipe_likes")
+}
+
+model RecipeSave {
+  id       String @id @default(cuid())
+  userId   String
+  recipeId String
+  
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, recipeId])
+  @@map("recipe_saves")
+}
+
+model Badge {
+  id          String @id @default(cuid())
+  title       String
+  description String
+  icon        String
+  requirement Int    // Points or count needed
+  
+  userBadges UserBadge[]
+  
+  @@map("badges")
+}
+
+model UserBadge {
+  id       String @id @default(cuid())
+  userId   String
+  badgeId  String
+  progress Int    @default(0)
+  unlocked Boolean @default(false)
+  unlockedAt DateTime?
+  
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+model Achievement {
+  id          String @id @default(cuid())
+  title       String
+  description String
+  type        AchievementType
+  
+  userAchievements UserAchievement[]
+  
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+  
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+model ImpactLog {
+  id           String       @id @default(cuid())
+  userId       String
+  wasteReduced Float        // in grams
+  moneySaved   Float        // in currency
+  co2Reduced   Float        // in kg
+  waterSaved   Float        // in liters
+  timespan     TimespanType
+  loggedAt     DateTime     @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("impact_logs")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum RecipeStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AchievementType {
+  RECIPE_CREATOR
+  WASTE_WARRIOR
+  COMMUNITY_BUILDER
+  TREND_SETTER
+}
+
+enum TimespanType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}

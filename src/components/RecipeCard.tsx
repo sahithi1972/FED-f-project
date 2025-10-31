@@ -1,8 +1,20 @@
+// COPILOT:
+// Enhance recipe card UI:
+// - Add a rounded image placeholder at top
+// - Add recipe title in bold
+// - Add small badge showing "Match: {matchScore}%"
+// - Add Time and Cost line below
+// - Add 2-3 small tags as rounded badges
+// Make hover slightly lift with shadow.
+// Do not remove props or logic. Only change styling.
+
+
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { cn } from "@/lib/utils";
 import { Heart, Clock, Award, Star } from "lucide-react";
+import React from "react";
 
 import { type Recipe } from "@/types/recipe";
 
@@ -11,13 +23,15 @@ interface RecipeCardProps {
   className?: string;
   onFavoriteToggle?: (id: string) => void;
   onClick?: (id: string) => void;
+  viewMode?: string;
 }
 
-export function RecipeCard({
+export const RecipeCard = React.memo(function RecipeCard({
   recipe,
   className,
   onFavoriteToggle,
   onClick,
+  viewMode,
 }: RecipeCardProps) {
   const {
     id,
@@ -34,16 +48,18 @@ export function RecipeCard({
   return (
     <Card
       className={cn(
-        "group overflow-hidden transition-all hover:shadow-lg",
+        "group overflow-hidden transition-all hover:shadow-lg hover:translate-y-[-4px] duration-300",
         className
       )}
     >
       <CardHeader className="p-0">
-        <div className="relative aspect-[4/3] overflow-hidden">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
           <img
-            src={image}
+            src={image || '/placeholder-recipe.jpg'}
             alt={title}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
           />
           <Button
             size="icon"
@@ -106,4 +122,4 @@ export function RecipeCard({
       </CardFooter>
     </Card>
   );
-}
+});

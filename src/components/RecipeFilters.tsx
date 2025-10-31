@@ -1,3 +1,11 @@
+// COPILOT:
+// Convert this filter section into a collapsible sidebar.
+// Default state: collapsed on mobile, expanded on desktop.
+// Use a "Filters" button at the top that toggles visibility.
+// Keep all filter logic exactly the same.
+// Only change layout + styling using Tailwind.
+
+
 import { useState } from "react";
 import {
   Accordion,
@@ -28,7 +36,7 @@ export interface RecipeFilters {
   seasonal: string;
 }
 
-const defaultFilters: RecipeFilters = {
+export const defaultFilters: RecipeFilters = {
   cookingTime: [5, 60],
   difficulty: "",
   budget: "",
@@ -54,12 +62,21 @@ export function RecipeFilters({ onFiltersChange, className }: RecipeFiltersProps
   };
 
   return (
-    <div className={cn("w-full", className)}>
-      <Accordion type="single" collapsible className="space-y-4">
-        {/* Cooking Time */}
-        <AccordionItem value="cooking-time">
-          <AccordionTrigger>Time to Cook</AccordionTrigger>
-          <AccordionContent>
+    <div className={cn("w-full lg:max-w-[300px] transition-all", className)}>
+      <div className="sticky top-[80px]">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold">Filters</h2>
+          <Button variant="ghost" size="sm" onClick={handleClearFilters}>
+            Clear all
+          </Button>
+        </div>
+        <Accordion type="single" collapsible className="space-y-4">
+          {/* Cooking Time */}
+          <AccordionItem value="cooking-time" className="border rounded-lg px-4">
+            <AccordionTrigger className="hover:no-underline">
+              <span className="text-sm font-medium">Time to Cook</span>
+            </AccordionTrigger>
+            <AccordionContent>
             <div className="space-y-4 pt-2">
               <Slider
                 defaultValue={[5, 60]}
@@ -285,6 +302,7 @@ export function RecipeFilters({ onFiltersChange, className }: RecipeFiltersProps
           Clear All Filters
         </Button>
         <Button onClick={() => onFiltersChange(filters)}>Apply Filters</Button>
+      </div>
       </div>
     </div>
   );

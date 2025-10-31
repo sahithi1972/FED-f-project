@@ -1,0 +1,247 @@
+import { useState } from "react";
+import { useLocation, Link } from "react-router-dom";
+import { Button } from "../components/ui/button";
+import { Skeleton } from "../components/ui/skeleton";
+import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { LayoutGrid, LayoutList, Search, SlidersHorizontal } from "lucide-react";
+import { Badge } from "../components/ui/badge";
+import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet";
+import { ScrollArea } from "../components/ui/scroll-area";
+import { Label } from "../components/ui/label";
+import { Slider } from "../components/ui/slider";
+import { Checkbox } from "../components/ui/checkbox";
+
+type ViewMode = "grid" | "list";
+
+const sortOptions = [
+  { value: "relevant", label: "Most Relevant" },
+  { value: "fastest", label: "Fastest First" },
+  { value: "budget", label: "Budget-Friendly" },
+  { value: "rated", label: "Highest Rated" },
+  { value: "newest", label: "Newest First" },
+  { value: "ingredients", label: "Using Your Ingredients" },
+] as const;
+
+function FiltersPanel() {
+  return (
+    <ScrollArea className="h-[calc(100vh-6rem)]">
+      <div className="p-6 space-y-8">
+        {/* Filter header */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Filters</h3>
+        </div>
+
+        {/* Time */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium">Preparation Time</h4>
+          <RadioGroup defaultValue="any" className="gap-4">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="any" id="any" />
+              <Label htmlFor="any">Any</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="15" id="15" />
+              <Label htmlFor="15">15 minutes or less</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="30" id="30" />
+              <Label htmlFor="30">30 minutes or less</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="45" id="45" />
+              <Label htmlFor="45">45 minutes or less</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="60" id="60" />
+              <Label htmlFor="60">1 hour or less</Label>
+            </div>
+          </RadioGroup>
+        </div>
+
+        {/* Budget */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium">Budget per Serving</h4>
+          <div>
+            <Slider defaultValue={[5]} max={20} step={1} className="w-full" />
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-xs text-muted-foreground">$0</span>
+              <span className="text-xs text-muted-foreground">$20+</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Dietary preferences */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium">Dietary Preferences</h4>
+          <div className="grid gap-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox id="vegetarian" />
+              <Label htmlFor="vegetarian">Vegetarian</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="vegan" />
+              <Label htmlFor="vegan">Vegan</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="glutenFree" />
+              <Label htmlFor="glutenFree">Gluten Free</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="dairyFree" />
+              <Label htmlFor="dairyFree">Dairy Free</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="nutFree" />
+              <Label htmlFor="nutFree">Nut Free</Label>
+            </div>
+          </div>
+        </div>
+
+        {/* Cuisine */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium">Cuisine</h4>
+          <div className="grid gap-3">
+            <div className="flex items-center space-x-2">
+              <Checkbox id="italian" />
+              <Label htmlFor="italian">Italian</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="mexican" />
+              <Label htmlFor="mexican">Mexican</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="chinese" />
+              <Label htmlFor="chinese">Chinese</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="indian" />
+              <Label htmlFor="indian">Indian</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="american" />
+              <Label htmlFor="american">American</Label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ScrollArea>
+  );
+}
+
+export default function RecipesPage() {
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [sortBy, setSortBy] = useState("relevant");
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container px-4 py-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="search"
+                  placeholder="Search recipes..."
+                  className="w-full rounded-full border bg-transparent px-4 py-2 pl-10"
+                />
+              </div>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+              >
+                {viewMode === "grid" ? (
+                  <LayoutList className="h-4 w-4" />
+                ) : (
+                  <LayoutGrid className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            <div className="flex items-center gap-4">
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button>Upload Recipe</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="container px-4">
+        <div className="flex items-center gap-4 py-4 border-b">
+          <Button variant="outline" onClick={() => setIsFilterOpen(true)}>
+            <SlidersHorizontal className="h-4 w-4 mr-2" />
+            Filters
+          </Button>
+          {/* Quick filters */}
+          <div className="flex flex-wrap gap-2">
+            {activeFilters.map(filter => (
+              <Badge key={filter} variant="secondary">
+                {filter}
+                <button
+                  onClick={() => setActiveFilters(prev => prev.filter(f => f !== filter))}
+                  className="ml-2 hover:bg-secondary-foreground/10 rounded"
+                >
+                  ×
+                </button>
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container px-4 py-8">
+        <div className="flex gap-6">
+          {/* Filters Sidebar - Desktop */}
+          <aside className="hidden lg:block w-[300px]">
+            <FiltersPanel />
+          </aside>
+
+          {/* Recipes Grid */}
+          <main className="flex-1">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div key={i} className="rounded-lg overflow-hidden border bg-card">
+                  <div className="aspect-video">
+                    <Skeleton className="h-full w-full" />
+                  </div>
+                  <div className="p-4 space-y-2">
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-3 w-1/2" />
+                    <div className="flex gap-2 pt-2">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <Skeleton className="h-8 w-24" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </main>
+        </div>
+      </div>
+
+      {/* Mobile Filters Sheet */}
+      <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+          <FiltersPanel />
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+}

@@ -40,3 +40,5 @@ export function AchievementPlaceholder() {
     </div>
   );
 }
+
+export { Skeleton } from "./skeleton";
