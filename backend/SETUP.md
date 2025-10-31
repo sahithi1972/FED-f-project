@@ -1,0 +1,52 @@
+# WasteChef Backend Setup Instructions
+
+## Initial Setup Commands
+
+```bash
+# Build the project
+npm run build
+
+# Generate Prisma client
+npx prisma generate
+
+# Run database migrations
+npx prisma db push
+
+# Seed the database
+npm run db:seed
+
+# Start the development server
+npm run dev
+
+# Run tests
+npm test
+```
+
+## Environment Variables
+
+The production environment requires specific configuration. Create a `.env.production` file with the following variables:
+
+```env
+NODE_ENV=production
+PORT=5000
+API_VERSION=v1
+
+# Database Configuration
+DATABASE_URL="postgresql://username:password@your-production-db:5432/wastechef_prod"
+
+# JWT Configuration
+JWT_SECRET=your_super_secure_production_jwt_secret
+JWT_EXPIRE=7d
+JWT_REFRESH_SECRET=your_super_secure_production_refresh_secret
+JWT_REFRESH_EXPIRE=30d
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=your_production_cloud_name
+CLOUDINARY_API_KEY=your_production_api_key
+CLOUDINARY_API_SECRET=your_production_api_secret
+
+# Client URL
+CLIENT_URL=https://your-frontend-domain.com
+```
+
+**Note:** Replace all placeholder values (like `username`, `password`, `your-production-db`, etc.) with your actual production credentials.
