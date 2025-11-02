@@ -36,7 +36,9 @@ function IngredientSearch() {
       return;
     }
 
-    navigate(`/recipes?ingredients=${selectedIngredients.join(",")}`);
+    navigate('/initial-search', { 
+      state: { ingredients: selectedIngredients } 
+    });
   };
 
   const handleIngredientAdd = (ingredient: string) => {

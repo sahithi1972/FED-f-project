@@ -18,6 +18,7 @@ import HowItWorks from "./pages/how-it-works";
 const LazyDashboard = React.lazy(() => import("@/pages/dashboard"));
 const LazyProfile = React.lazy(() => import("@/pages/profile"));
 const LazyRecipes = React.lazy(() => import("@/pages/recipes"));
+const LazyInitialSearch = React.lazy(() => import("@/pages/initial-search"));
 const LazyRecipeResults = React.lazy(() => import("@/components/RecipeResultsPage"));
 const LazyMyRecipes = React.lazy(() => import("@/pages/my-recipes"));
 
@@ -82,6 +83,16 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+        <Route
+          path="/initial-search"
+          element={
+            <PageTransition>
+              <React.Suspense fallback={<LoadingFallback />}>
+                <LazyInitialSearch />
+              </React.Suspense>
+            </PageTransition>
+          }
+        />
         <Route 
           path="/recipes" 
           element={

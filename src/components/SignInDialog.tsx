@@ -27,6 +27,7 @@ interface SignInDialogProps {
 
 export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
@@ -43,21 +44,22 @@ export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
 
   const onSubmit = async (data: SignInFormData) => {
     try {
-  await login(data.email, data.password, rememberMe);
-      if (rememberMe) {
-        localStorage.setItem("rememberMe", "true");
-      }
+      setIsLoading(true);
+      await login(data.email, data.password, rememberMe);
       reset();
       if (onOpenChange) {
         onOpenChange(false);
       } else {
         setIsOpen(false);
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Login error:', error);
       setError("root", {
         type: "manual",
-        message: "Invalid email or password",
+        message: error.message || "Invalid email or password"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -156,8 +158,15 @@ export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
               {errors.root.message}
             </p>
           )}
-          <Button type="submit" className="w-full">
-            Sign in
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              "Sign in"
+            )}
           </Button>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">

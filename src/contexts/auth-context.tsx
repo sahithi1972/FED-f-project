@@ -26,6 +26,7 @@ interface AuthContextType {
   loading: boolean;
   requiresProfileSetup: boolean;
   setProfileCompleted: () => void;
+  updateUserData: (data: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,6 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem('authToken');
         if (token) {
           const response = await fetch('http://localhost:5000/api/v1/auth/me', {
@@ -56,12 +58,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(data.data);
             setRequiresProfileSetup(!data.data.profileCompleted);
           } else {
+            // Clear user state and tokens on auth failure
+            setUser(null);
             localStorage.removeItem('authToken');
             localStorage.removeItem('refreshToken');
           }
+        } else {
+          // Clear user state when no token exists
+          setUser(null);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
+        // Clear user state on error
+        setUser(null);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
       } finally {
         setLoading(false);
       }
@@ -146,6 +157,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const updateUserData = (data: Partial<User>) => {
+    if (user) {
+      setUser({ ...user, ...data });
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -155,6 +172,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       loading,
       requiresProfileSetup,
       setProfileCompleted,
+      updateUserData,
     }}>
       {children}
     </AuthContext.Provider>

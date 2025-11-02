@@ -14,10 +14,10 @@ const Navbar = () => {
   const [isNavigating, setIsNavigating] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, loading, requiresProfileSetup } = useAuth();
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
   const [showProfileCue, setShowProfileCue] = useState(false);
-  const profileBtnRef = useRef<HTMLAnchorElement | null>(null);
+  const profileBtnRef = useRef<HTMLButtonElement | null>(null);
   // Show cue after sign-in, only once
   useEffect(() => {
     if (user && !localStorage.getItem('profileCueShown')) {
@@ -32,7 +32,14 @@ const Navbar = () => {
   const handleProfileClick = () => {
     setShowProfileCue(false);
     localStorage.setItem('profileCueShown', '1');
-    if (user) {
+    
+    // Don't do anything if still loading auth state
+    if (loading) {
+      return;
+    }
+
+    // If user is logged in, navigate directly to profile
+    if (user && user.id) {
       navigate('/profile');
     } else {
       setShowAuthModal(true);
@@ -138,12 +145,13 @@ const Navbar = () => {
               const Component = item.href.startsWith('#') ? 'a' : Link;
               if (item.label === 'My Profile') {
                 return (
-                  <Component
+                  <button
                     key={item.label}
                     ref={profileBtnRef}
-                    href={item.href.startsWith('#') ? item.href : undefined}
-                    to={item.href.startsWith('#') ? undefined : item.href}
-                    onClick={() => handleProfileClick()}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleProfileClick();
+                    }}
                     className={`text-sm font-medium relative ${
                       isActive
                         ? "text-primary"
@@ -155,7 +163,21 @@ const Navbar = () => {
                     } ${isNavigating ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     {item.label}
-                  </Component>
+                    {requiresProfileSetup && (
+                      <>
+                        <div className="absolute -top-1 -right-1">
+                          <div className="relative">
+                            <div className="animate-ping absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-400 rounded-full"></div>
+                            <div className="relative w-2 h-2 bg-red-600 rounded-full"></div>
+                          </div>
+                        </div>
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-50">
+                          Complete your profile!
+                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 w-2 h-2 bg-yellow-500 rotate-45"></div>
+                        </div>
+                      </>
+                    )}
+                  </button>
                 );
               }
               return (
@@ -225,18 +247,35 @@ const Navbar = () => {
             {menuItems.map((item) => {
               const isActive = location.pathname === item.href;
               return (
-                <Link
-                  key={item.label}
-                  to={item.href}
-                  className={`block py-2 text-sm font-medium relative ${
-                    isActive
-                      ? "text-primary"
-                      : "text-muted-foreground hover:text-primary"
-                  } transition-colors ${isNavigating ? 'opacity-50 pointer-events-none' : ''}`}
-                  onClick={() => handleNavigation(item)}
-                >
-                  {item.label}
-                </Link>
+                item.label === 'My Profile' ? (
+                  <button
+                    key={item.label}
+                    className={`block py-2 text-sm font-medium relative w-full text-left ${
+                      isActive
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-primary"
+                    } transition-colors ${isNavigating ? 'opacity-50 pointer-events-none' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleProfileClick();
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                ) : (
+                  <Link
+                    key={item.label}
+                    to={item.href}
+                    className={`block py-2 text-sm font-medium relative ${
+                      isActive
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-primary"
+                    } transition-colors ${isNavigating ? 'opacity-50 pointer-events-none' : ''}`}
+                    onClick={() => handleNavigation(item)}
+                  >
+                    {item.label}
+                  </Link>
+                )
               );
             })}
             <div className="flex flex-col gap-2 pt-4 border-t">
@@ -245,6 +284,19 @@ const Navbar = () => {
               </div>
               {user ? (
                 <div className="flex items-center gap-2">
+                  {user.profileImage ? (
+                    <img
+                      src={user.profileImage}
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover border border-border"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-border">
+                      <span className="text-sm font-medium text-primary">
+                        {user.name?.charAt(0)?.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                   <span className="font-medium text-foreground">{user.name}</span>
                   <>
                     <Button variant="outline" size="sm" onClick={() => setShowSignOutDialog(true)}>

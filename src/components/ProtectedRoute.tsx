@@ -7,10 +7,16 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated } = useAuth();
+  const { user, loading } = useAuth();
   const { openModal } = useAuthModal();
 
-  if (!isAuthenticated) {
+  // Don't do anything while auth is loading
+  if (loading) {
+    return null;
+  }
+
+  // Check if user is authenticated
+  if (!user) {
     // Open the auth modal and redirect to home page
     openModal('signin');
     return <Navigate to="/" replace />;

@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/auth-context';
-import { Navigate, Link } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { ProfileDialog } from '../components/ProfileDialog';
 import { ProfileView } from '../components/ProfileView';
-import { API_BASE_URL } from '../config/api';
-import { ArrowLeft } from 'lucide-react';
 
 interface ProfileData {
   name: string;
@@ -17,16 +15,16 @@ interface ProfileData {
 const Profile: React.FC = () => {
   const { user, setProfileCompleted } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(!user?.profileCompleted);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFirstVisit, setIsFirstVisit] = useState(!user?.profileCompleted);
+  const [isFirstVisit, setIsFirstVisit] = useState(true);
 
   const fetchProfile = async () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      const response = await fetch('http://localhost:5000/api/v1/auth/profile', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -34,20 +32,17 @@ const Profile: React.FC = () => {
       
       if (response.ok) {
         const data = await response.json();
-        // Check both data.profile and data.data since the backend might use either
-        const profileData = data.data || data.profile;
-        
-        if (profileData) {
+        if (data.success && data.profile) {
           const normalizedProfile = {
-            name: profileData.name || '',
-            occupation: profileData.occupation || '',
-            cuisinePreferences: Array.isArray(profileData.cuisinePreferences) ? profileData.cuisinePreferences : [],
-            dietaryPreferences: Array.isArray(profileData.dietaryPreferences) ? profileData.dietaryPreferences : [],
-            profileImage: profileData.profileImage || ''
+            name: data.profile.name || '',
+            occupation: data.profile.occupation || '',
+            cuisinePreferences: Array.isArray(data.profile.cuisinePreferences) ? data.profile.cuisinePreferences : [],
+            dietaryPreferences: Array.isArray(data.profile.dietaryPreferences) ? data.profile.dietaryPreferences : [],
+            profileImage: data.profile.profileImage || ''
           };
           setProfile(normalizedProfile);
           
-          if (profileData.name && isFirstVisit) {
+          if (data.profile.name && isFirstVisit) {
             setIsFirstVisit(false);
           }
         }
@@ -72,27 +67,25 @@ const Profile: React.FC = () => {
 
   const onProfileUpdate = async (updatedProfile: ProfileData) => {
     try {
-      // Update local state immediately for optimistic update
+      setIsDialogOpen(false);
       setProfile(updatedProfile);
-      setShowSuccess(true);
       
-      // If this was the first visit, mark profile as completed
       if (isFirstVisit) {
         setProfileCompleted();
         setIsFirstVisit(false);
       }
       
-      // Fetch the latest profile data from backend to ensure sync
-      await fetchProfile();
+      setShowSuccess(true);
       
-      // Hide success message after 2 seconds
+      setTimeout(async () => {
+        await fetchProfile();
+      }, 500);
+      
       setTimeout(() => {
         setShowSuccess(false);
       }, 2000);
     } catch (error) {
       console.error('Error in profile update:', error);
-      // If there's an error, fetch profile again to ensure we're in sync
-      await fetchProfile();
     }
   };
 
@@ -106,16 +99,6 @@ const Profile: React.FC = () => {
 
   return (
     <div className="profile-container flex flex-col justify-center items-center min-h-[calc(100vh-4rem)] p-8">
-      <div className="w-full max-w-4xl flex justify-between items-center mb-6">
-        <Link 
-          to="/" 
-          className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Home
-        </Link>
-      </div>
-      
       {showSuccess && (
         <div className="fixed top-4 right-4 flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded shadow-lg">
           <div className="w-5 h-5 text-white">✓</div>
