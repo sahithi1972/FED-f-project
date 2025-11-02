@@ -50,13 +50,103 @@ const updateRecipeValidation = [
 
 // Routes
 // Public routes (with optional authentication)
+/**
+ * @swagger
+ * tags:
+ *   name: Recipes
+ *   description: Recipe management
+ */
+
+/**
+ * @swagger
+ * /api/v1/recipes:
+ *   get:
+ *     summary: Get all recipes
+ *     tags: [Recipes]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Page size
+ *     responses:
+ *       200:
+ *         description: List of recipes
+ */
 router.get('/', getRecipes);
 router.get('/trending', getTrendingRecipes);
 router.get('/user/:userId', getUserRecipes);
+/**
+ * @swagger
+ * /api/v1/recipes/{id}:
+ *   get:
+ *     summary: Get recipe by ID
+ *     tags: [Recipes]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Recipe ID
+ *     responses:
+ *       200:
+ *         description: Recipe details
+ *       404:
+ *         description: Recipe not found
+ */
 router.get('/:id', getRecipeById);
 
 // Protected routes (require authentication)
 router.get('/recommended', authenticate, validateRequest, getRecommendedRecipes);
+/**
+ * @swagger
+ * /api/v1/recipes:
+ *   post:
+ *     summary: Create a new recipe
+ *     tags: [Recipes]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               ingredients:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *               steps:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *               cookingTime:
+ *                 type: integer
+ *               difficulty:
+ *                 type: string
+ *               servings:
+ *                 type: integer
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       201:
+ *         description: Recipe created
+ *       400:
+ *         description: Bad request
+ */
 router.post('/', authenticate, createRecipeValidation, validateRequest, createRecipe);
 router.put('/:id', authenticate, updateRecipeValidation, validateRequest, updateRecipe);
 router.delete('/:id', authenticate, validateRequest, deleteRecipe);

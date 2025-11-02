@@ -7,27 +7,83 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum PerishabilityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  VERY_HIGH
+}
+
+model IngredientCategory {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  icon        String?
+
+  ingredients Ingredient[]
+
+  @@map("ingredient_categories")
+}
+
+model Ingredient {
+  id              String             @id @default(cuid())
+  name            String             @unique
+  categoryId      String
+  shelfLifeDays   Int? // Average shelf life in days
+  perishability   PerishabilityLevel @default(MEDIUM)
+  commonUnits     String[] // Common measurement units
+  substitutionIds String[] // IDs of common substitutes
+  nutritionalInfo Json? // Store nutritional data as JSON
+  sustainability  Float? // Sustainability score (0-10)
+
+  category              IngredientCategory       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  recipeIngredients     RecipeIngredient[]
+  originalSubstitutions IngredientSubstitution[] @relation("OriginalSubstitution")
+  substituteFor         IngredientSubstitution[] @relation("SubstituteIngredient")
+
+  @@map("ingredients")
+}
+
+model IngredientSubstitution {
+  id           String  @id @default(cuid())
+  originalId   String
+  substituteId String
+  confidence   Float // 0-1 how good the substitution is
+  notes        String?
+
+  original   Ingredient @relation("OriginalSubstitution", fields: [originalId], references: [id], onDelete: Cascade)
+  substitute Ingredient @relation("SubstituteIngredient", fields: [substituteId], references: [id], onDelete: Cascade)
+
+  @@unique([originalId, substituteId])
+  @@map("ingredient_substitutions")
+}
+
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  password     String
-  name         String
-  profileImage String?
-  role         UserRole @default(USER)
-  
-  // Preferences
-  dietaryPreferences String[] // Stored as JSON array
-  cuisinePreferences String[] // Stored as JSON array
-  
+  id               String   @id @default(cuid())
+  email            String   @unique
+  password         String
+  name             String
+  profileImage     String?
+  occupation       String?
+  location         String?
+  gender           String?
+  role             UserRole @default(USER)
+  profileCompleted Boolean  @default(false)
+
+  // Use JSON fields for simplicity instead of relations for now
+  dietaryPreferences Json? // Store as JSON array
+  cuisinePreferences Json? // Store as JSON array
+  healthRestrictions Json? // Store as JSON array
+
   // Stats
-  recipesCreated Int    @default(0)
-  totalLikes     Int    @default(0)
-  impactScore    Float  @default(0)
-  
+  recipesCreated Int   @default(0)
+  totalLikes     Int   @default(0)
+  impactScore    Float @default(0)
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relations
   recipes      Recipe[]
   badges       UserBadge[]
@@ -35,76 +91,78 @@ model User {
   likedRecipes RecipeLike[]
   savedRecipes RecipeSave[]
   achievements UserAchievement[]
-  
+
   @@map("users")
 }
 
 model Recipe {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   title       String
   description String
-  cookingTime Int      // in minutes
+  cookingTime Int // in minutes
   difficulty  Difficulty
   servings    Int
   status      RecipeStatus @default(DRAFT)
-  
+
   // Images
-  mainImage   String?
-  
+  mainImage String?
+
   // Stats
-  views      Int @default(0)
-  likes      Int @default(0)
-  saves      Int @default(0)
+  views       Int @default(0)
+  likes       Int @default(0)
+  saves       Int @default(0)
   completions Int @default(0)
-  
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relations
-  userId     String
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ingredients RecipeIngredient[]
-  steps      RecipeStep[]
-  tags       RecipeTag[]
+  userId        String
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ingredients   RecipeIngredient[]
+  steps         RecipeStep[]
+  tags          RecipeTag[]
   likesRelation RecipeLike[]
   savesRelation RecipeSave[]
-  
+
   @@map("recipes")
 }
 
 model RecipeIngredient {
-  id              String  @id @default(cuid())
-  recipeId        String
-  name            String
-  quantity        Float
-  unit            String
-  wastageReduction Float?  @default(0) // Percentage of waste reduced
-  
-  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  
+  id               String @id @default(cuid())
+  recipeId         String
+  name             String // Store ingredient name directly for simplicity
+  quantity         Float
+  unit             String
+  wastageReduction Float? @default(0) // Percentage of waste reduced
+
+  recipe       Recipe      @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  Ingredient   Ingredient? @relation(fields: [ingredientId], references: [id])
+  ingredientId String?
+
   @@map("recipe_ingredients")
 }
 
 model RecipeStep {
-  id          String @id @default(cuid())
+  id          String  @id @default(cuid())
   recipeId    String
   order       Int
   description String
   image       String?
-  
+
   recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  
+
   @@map("recipe_steps")
 }
 
 model Tag {
-  id    String @id @default(cuid())
-  name  String @unique
+  id    String  @id @default(cuid())
+  name  String  @unique
   color String?
-  
+
   recipes RecipeTag[]
-  
+
   @@map("tags")
 }
 
@@ -112,10 +170,10 @@ model RecipeTag {
   id       String @id @default(cuid())
   recipeId String
   tagId    String
-  
+
   recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  
+
   @@unique([recipeId, tagId])
   @@map("recipe_tags")
 }
@@ -124,12 +182,12 @@ model RecipeLike {
   id       String @id @default(cuid())
   userId   String
   recipeId String
-  
+
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  
+
   createdAt DateTime @default(now())
-  
+
   @@unique([userId, recipeId])
   @@map("recipe_likes")
 }
@@ -138,63 +196,63 @@ model RecipeSave {
   id       String @id @default(cuid())
   userId   String
   recipeId String
-  
+
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  
+
   createdAt DateTime @default(now())
-  
+
   @@unique([userId, recipeId])
   @@map("recipe_saves")
 }
 
 model Badge {
   id          String @id @default(cuid())
-  title       String
+  title       String @unique
   description String
   icon        String
-  requirement Int    // Points or count needed
-  
+  requirement Int // Points or count needed
+
   userBadges UserBadge[]
-  
+
   @@map("badges")
 }
 
 model UserBadge {
-  id       String @id @default(cuid())
-  userId   String
-  badgeId  String
-  progress Int    @default(0)
-  unlocked Boolean @default(false)
+  id         String    @id @default(cuid())
+  userId     String
+  badgeId    String
+  progress   Int       @default(0)
+  unlocked   Boolean   @default(false)
   unlockedAt DateTime?
-  
+
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, badgeId])
   @@map("user_badges")
 }
 
 model Achievement {
-  id          String @id @default(cuid())
-  title       String
+  id          String          @id @default(cuid())
+  title       String          @unique
   description String
   type        AchievementType
-  
+
   userAchievements UserAchievement[]
-  
+
   @@map("achievements")
 }
 
 model UserAchievement {
-  id            String @id @default(cuid())
+  id            String   @id @default(cuid())
   userId        String
   achievementId String
   unlockedAt    DateTime @default(now())
-  
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, achievementId])
   @@map("user_achievements")
 }
@@ -202,15 +260,15 @@ model UserAchievement {
 model ImpactLog {
   id           String       @id @default(cuid())
   userId       String
-  wasteReduced Float        // in grams
-  moneySaved   Float        // in currency
-  co2Reduced   Float        // in kg
-  waterSaved   Float        // in liters
+  wasteReduced Float // in grams
+  moneySaved   Float // in currency
+  co2Reduced   Float // in kg
+  waterSaved   Float // in liters
   timespan     TimespanType
   loggedAt     DateTime     @default(now())
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@map("impact_logs")
 }
 

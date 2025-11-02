@@ -1,76 +1,84 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
-import { hashPassword, comparePassword, generateToken, generateRefreshToken } from '../utils/auth';
+import { hashPassword, comparePassword } from '../utils/auth';
 import { sendResponse, sendError } from '../utils/response';
 import { AuthRequest } from '../types';
 
+// Simple token generation
+const generateToken = (userId: string): string => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET || 'fallback-secret', {
+    expiresIn: '30d',
+  });
+};
+
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, name, dietaryPreferences = [], cuisinePreferences = [] } = req.body;
+    const { email, password, name } = req.body;
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    console.log('🔐 Registration attempt:', { email, name });
 
+    // Basic validation
+    if (!email || !password || !name) {
+      sendError(res, 400, 'Email, password, and name are required');
+      return;
+    }
+
+    if (password.length < 8) {
+      sendError(res, 400, 'Password must be at least 8 characters long');
+      return;
+    }
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       sendError(res, 400, 'User with this email already exists');
       return;
     }
 
-    // Hash password
+    // Hash password and create user
     const hashedPassword = await hashPassword(password);
-
-    // Create user
+    
     const user = await prisma.user.create({
       data: {
-        email,
-        password: hashedPassword,
-        name,
-        dietaryPreferences,
-        cuisinePreferences,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        profileImage: true,
-        role: true,
-        dietaryPreferences: true,
-        cuisinePreferences: true,
-        recipesCreated: true,
-        totalLikes: true,
-        impactScore: true,
-        createdAt: true,
+    email,
+    password: hashedPassword,
+    name,
+    dietaryPreferences: [],
+    cuisinePreferences: [],
+    healthRestrictions: [],
       },
     });
 
-    // Generate tokens
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user;
+
+    // Generate token
     const token = generateToken(user.id);
-    const refreshToken = generateRefreshToken(user.id);
+
+    console.log('✅ User registered successfully:', user.email);
 
     sendResponse(res, 201, 'User registered successfully', {
-      user,
+      user: userWithoutPassword,
       token,
-      refreshToken,
+      requiresProfileSetup: true,
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('❌ Registration error:', error);
     sendError(res, 500, 'Internal server error');
   }
 };
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
+
+    console.log('🔐 Login attempt:', { email });
 
     // Find user
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
+      console.log('❌ User not found:', email);
       sendError(res, 401, 'Invalid email or password');
       return;
     }
@@ -78,62 +86,27 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Check password
     const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid) {
+      console.log('❌ Invalid password for user:', email);
       sendError(res, 401, 'Invalid email or password');
       return;
     }
 
-    // Generate tokens
+    // Generate token
     const token = generateToken(user.id);
-    const refreshToken = generateRefreshToken(user.id);
 
-    // Return user data (excluding password)
-    const userData = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      profileImage: user.profileImage,
-      role: user.role,
-      dietaryPreferences: user.dietaryPreferences,
-      cuisinePreferences: user.cuisinePreferences,
-      recipesCreated: user.recipesCreated,
-      totalLikes: user.totalLikes,
-      impactScore: user.impactScore,
-      createdAt: user.createdAt,
-    };
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user;
+
+    console.log('✅ Login successful for user:', user.email);
 
     sendResponse(res, 200, 'Login successful', {
-      user: userData,
-      token,
-      refreshToken,
+  user: userWithoutPassword,
+  token,
+  requiresProfileSetup: !(user as any).profileCompleted,
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('❌ Login error:', error);
     sendError(res, 500, 'Internal server error');
-  }
-};
-
-export const refreshToken = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { refreshToken } = req.body;
-
-    if (!refreshToken) {
-      sendError(res, 401, 'Refresh token required');
-      return;
-    }
-
-    // Verify refresh token
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as { userId: string };
-    
-    // Generate new tokens
-    const newToken = generateToken(decoded.userId);
-    const newRefreshToken = generateRefreshToken(decoded.userId);
-
-    sendResponse(res, 200, 'Token refreshed successfully', {
-      token: newToken,
-      refreshToken: newRefreshToken,
-    });
-  } catch (error) {
-    sendError(res, 401, 'Invalid refresh token');
   }
 };
 
@@ -141,24 +114,40 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
   try {
     const user = req.user;
 
-    // Get user badges and achievements
-    const userWithStats = await prisma.user.findUnique({
-      where: { id: user!.id },
-      include: {
-        badges: {
-          include: {
-            badge: true,
-          },
-        },
-        achievements: {
-          include: {
-            achievement: true,
-          },
-        },
+    if (!user) {
+      sendError(res, 401, 'Not authenticated');
+      return;
+    }
+
+    const userData = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        profileImage: true,
+        occupation: true,
+        location: true,
+        gender: true,
+        role: true,
+        profileCompleted: true,
+        dietaryPreferences: true,
+        cuisinePreferences: true,
+        healthRestrictions: true,
+        recipesCreated: true,
+        totalLikes: true,
+        impactScore: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
-    sendResponse(res, 200, 'Profile retrieved successfully', userWithStats);
+    if (!userData) {
+      sendError(res, 404, 'User not found');
+      return;
+    }
+
+    sendResponse(res, 200, 'Profile retrieved successfully', userData);
   } catch (error) {
     console.error('Get profile error:', error);
     sendError(res, 500, 'Internal server error');
@@ -168,34 +157,56 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { name, dietaryPreferences, cuisinePreferences } = req.body;
+    const { 
+      name, 
+      occupation, 
+      location, 
+      gender, 
+      profileImage,
+      dietaryPreferences, 
+      cuisinePreferences, 
+      healthRestrictions,
+      profileCompleted 
+    } = req.body;
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
         ...(name && { name }),
-        ...(dietaryPreferences && { dietaryPreferences }),
-        ...(cuisinePreferences && { cuisinePreferences }),
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        profileImage: true,
-        role: true,
-        dietaryPreferences: true,
-        cuisinePreferences: true,
-        recipesCreated: true,
-        totalLikes: true,
-        impactScore: true,
-        createdAt: true,
-        updatedAt: true,
+        ...(occupation !== undefined && { occupation }),
+        ...(location !== undefined && { location }),
+        ...(gender !== undefined && { gender }),
+        ...(profileImage !== undefined && { profileImage }),
+        ...(dietaryPreferences !== undefined && { dietaryPreferences }),
+        ...(cuisinePreferences !== undefined && { cuisinePreferences }),
+        ...(healthRestrictions !== undefined && { healthRestrictions }),
+        ...(profileCompleted !== undefined && { profileCompleted }),
       },
     });
 
-    sendResponse(res, 200, 'Profile updated successfully', updatedUser);
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = updatedUser;
+
+    sendResponse(res, 200, 'Profile updated successfully', userWithoutPassword);
   } catch (error) {
     console.error('Update profile error:', error);
-    sendError(res, 500, 'Internal server error');
+    sendError(res, 500, 'Failed to update profile');
+  }
+};
+
+export const refreshToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Simple refresh token - just generate new token
+    const { userId } = req.body;
+    
+    if (!userId) {
+      sendError(res, 400, 'User ID required');
+      return;
+    }
+
+    const token = generateToken(userId);
+    sendResponse(res, 200, 'Token refreshed successfully', { token });
+  } catch (error) {
+    sendError(res, 401, 'Invalid request');
   }
 };

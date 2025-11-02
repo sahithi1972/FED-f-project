@@ -6,7 +6,7 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5000;
 
 // Basic error handling
 process.on('uncaughtException', (err) => {
@@ -17,7 +17,10 @@ process.on('uncaughtException', (err) => {
 app.use(cors());
 app.use(express.json());
 
-// Sample API route
+// Root route
+app.get('/', (req, res) => {
+    res.json({ message: 'Welcome to WasteChef API' });
+});
 app.get("/api/hello", (req, res) => {
     try {
         res.json({ message: "Hello from Node + Express backend!" });
@@ -39,11 +42,7 @@ app.get("/api/test-recipe", (req, res) => {
 });
 
 // Start server
-try {
-    app.listen(PORT, () => {
-        console.log(`Server running at http://localhost:${PORT}`);
-        console.log(`Test the API at http://localhost:${PORT}/api/hello`);
-    });
-} catch (error) {
-    console.error('Error starting server:', error);
-}
+app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Test the API at http://localhost:${PORT}/api/hello`);
+});

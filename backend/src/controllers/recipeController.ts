@@ -1,7 +1,8 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import prisma from '../config/database';
 import { AuthRequest } from '../types';
 import { Recipe } from '@prisma/client';
+import { recommendationService } from '../services/recommendationService';
 import { RecipeFilters, CreateRecipeInput, UpdateRecipeInput } from '../types/recipe';
 import { RecipeDifficulty, RecipeStatus } from '../types/enums';
 import { RecipeResponse, PaginatedRecipeResponse } from '../types/responses';
@@ -91,7 +92,7 @@ export const getRecipes = async (req: AuthRequest, res: Response): Promise<void>
     if (req.query.tags) filters.tags = (req.query.tags as string).split(',');
     if (req.query.ingredients) filters.ingredients = (req.query.ingredients as string).split(',');
 
-    const where = {
+    const where: any = {
       status: RecipeStatus.PUBLISHED,
       ...(filters.difficulty && { difficulty: filters.difficulty as RecipeDifficulty }),
       ...(filters.cookingTime && { cookingTime: { lte: filters.cookingTime } }),
@@ -115,6 +116,39 @@ export const getRecipes = async (req: AuthRequest, res: Response): Promise<void>
           },
         },
       }),
+    };
+
+    type Recipe = {
+      id: string;
+      title: string;
+      description: string;
+      cookingTime: number;
+      difficulty: string;
+      servings: number;
+      mainImage: string | null;
+      user: {
+        id: string;
+        name: string;
+        profileImage: string | null;
+      };
+      _count: {
+        likesRelation: number;
+        savesRelation: number;
+      };
+      ingredients: Array<{
+        quantity: number;
+        unit: string;
+        ingredientId: string;
+      }>;
+      steps: Array<{
+        order: number;
+        description: string;
+      }>;
+      tags: Array<{
+        tag: {
+          name: string;
+        };
+      }>;
     };
 
     const recipes = await prisma.recipe.findMany({
@@ -154,10 +188,8 @@ export const getRecipes = async (req: AuthRequest, res: Response): Promise<void>
       isLiked: false,
       isSaved: false,
       stats: {
-        views: recipe.views,
-        likes: recipe._count.likesRelation,
-        saves: recipe._count.savesRelation,
-        completions: recipe.completions,
+        likes: recipe._count?.likesRelation ?? 0,
+        saves: recipe._count?.savesRelation ?? 0,
       },
     }));
 
@@ -816,23 +848,25 @@ export const getRecommendedRecipes = async (req: AuthRequest, res: Response): Pr
     }
 
     // Get recipes matching user preferences
+    const dietaryPrefs = Array.isArray(user.dietaryPreferences)
+      ? user.dietaryPreferences.filter((v) => typeof v === 'string')
+      : [];
+    const cuisinePrefs = Array.isArray(user.cuisinePreferences)
+      ? user.cuisinePreferences.filter((v) => typeof v === 'string')
+      : [];
     const recipes = await prisma.recipe.findMany({
       where: {
         status: 'PUBLISHED',
-        userId: { not: userId }, // Exclude user's own recipes
-        OR: [
-          {
-            tags: {
-              some: {
-                tag: {
-                  name: {
-                    in: [...user.dietaryPreferences, ...user.cuisinePreferences],
-                  },
-                },
+        userId: { not: userId },
+        tags: {
+          some: {
+            tag: {
+              name: {
+                in: [...dietaryPrefs, ...cuisinePrefs],
               },
             },
           },
-        ],
+        },
       },
       orderBy: [
         { likes: 'desc' },
@@ -883,15 +917,14 @@ export const getRecommendedRecipes = async (req: AuthRequest, res: Response): Pr
             },
           }),
         ]);
-
         return {
           ...recipe,
           isLiked: !!userLike,
           isSaved: !!userSave,
           stats: {
             views: recipe.views,
-            likes: recipe._count.likesRelation,
-            saves: recipe._count.savesRelation,
+            likes: recipe._count?.likesRelation ?? 0,
+            saves: recipe._count?.savesRelation ?? 0,
             completions: recipe.completions,
           },
         };
@@ -904,3 +937,49 @@ export const getRecommendedRecipes = async (req: AuthRequest, res: Response): Pr
     sendError(res, 500, 'Failed to retrieve recommended recipes');
   }
 };
+
+export const recommendByIngredients = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { ingredients, maxCookingTime, difficulty, dietary, cuisine, limit } = req.body;
+    if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+      sendError(res, 400, 'Please provide at least one ingredient');
+      return;
+    }
+    const recommendations = await recommendationService.recommendRecipes(
+      ingredients,
+      {
+        maxCookingTime,
+        difficulty,
+        dietary,
+        cuisine,
+      },
+      limit || 10
+    );
+    sendResponse(res, 200, 'Recommendations generated successfully', recommendations);
+  } catch (error) {
+    console.error('Recommend by ingredients error:', error);
+    sendError(res, 500, 'Failed to generate recommendations');
+  }
+};
+
+export const getExpiringRecipes = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { ingredients, limit } = req.body;
+    
+    if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+      sendError(res, 400, 'Please provide at least one expiring ingredient');
+      return;
+    }
+
+    const recommendations = await recommendationService.recipesForExpiringIngredients(
+      ingredients,
+      limit || 5
+    );
+
+    sendResponse(res, 200, 'Expiring ingredient recipes retrieved successfully', recommendations);
+  } catch (error) {
+    console.error('Get expiring recipes error:', error);
+    sendError(res, 500, 'Failed to retrieve expiring ingredient recipes');
+  }
+};
+

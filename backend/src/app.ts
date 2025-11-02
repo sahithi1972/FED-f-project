@@ -14,19 +14,23 @@ import userRoutes from './routes/users';
 import impactRoutes from './routes/impact';
 import searchRoutes from './routes/search';
 import uploadRoutes from './routes/upload';
-// TODO: Implement these routes
-// import recipeRoutes from './routes/recipes';
-// import userRoutes from './routes/users';
-// import impactRoutes from './routes/impact';
+import recommendationRoutes from './routes/recommendations';
+
+// Get environment variables
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
 // import searchRoutes from './routes/search';
 
 const app = express();
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: CLIENT_URL,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 // Body parsing middleware
@@ -68,9 +72,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/impact', impactRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/recommendations', recommendationRoutes);
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.originalUrl} not found`,
