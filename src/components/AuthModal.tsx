@@ -39,7 +39,7 @@ export function AuthModal({ isOpen, onClose, initialMode = "signin" }: AuthModal
   const [cuisinePreferences, setCuisinePreferences] = useState<string[]>([]);
   const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const { login } = useAuth();
+  const { login, register } = useAuth();
 
   const cuisines = ["Indian", "Italian", "Asian", "Mexican", "Chinese"];
   const restrictions = ["Vegetarian", "Vegan", "Gluten-free", "Egg-free"];
@@ -47,7 +47,7 @@ export function AuthModal({ isOpen, onClose, initialMode = "signin" }: AuthModal
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(email, password);
+      await login(email, password, rememberMe);
       onClose();
     } catch (error) {
       console.error("Login failed:", error);
@@ -58,7 +58,31 @@ export function AuthModal({ isOpen, onClose, initialMode = "signin" }: AuthModal
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Implement sign up logic here
+    // Basic validation
+    if (!email || !password || !confirmPassword) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      alert('Passwords do not match.');
+      return;
+    }
+    if (!acceptTerms) {
+      alert('You must agree to the Terms & Conditions.');
+      return;
+    }
+
+    try {
+      // Use register from useAuth (only email, password, name supported)
+      await register(email, password, email.split('@')[0]);
+      alert('Account created! You can now sign in.');
+      setMode('signin');
+      setPassword("");
+      setConfirmPassword("");
+      setAcceptTerms(false);
+    } catch (error: any) {
+      alert(error?.message || 'Registration failed.');
+    }
   };
 
   const PasswordStrengthIndicator = () => {

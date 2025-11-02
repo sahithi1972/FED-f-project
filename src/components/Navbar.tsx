@@ -1,10 +1,12 @@
 import { Button } from "./ui/button";
+import { ConfirmDialog } from "./ui/ConfirmDialog";
 import { Leaf, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import { SignInDialog } from "./SignInDialog";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/auth-context";
+import { useProfileCue } from "../hooks/useProfileCue";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,14 +14,43 @@ const Navbar = () => {
   const [isNavigating, setIsNavigating] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { user, logout } = useAuth();
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [showProfileCue, setShowProfileCue] = useState(false);
+  const profileBtnRef = useRef<HTMLAnchorElement | null>(null);
+  // Show cue after sign-in, only once
+  useEffect(() => {
+    if (user && !localStorage.getItem('profileCueShown')) {
+      setShowProfileCue(true);
+      const timeout = setTimeout(() => setShowProfileCue(false), 4000);
+      return () => clearTimeout(timeout);
+    }
+  }, [user]);
+
+  // Remove cue after first click
+
+  const handleProfileClick = () => {
+    setShowProfileCue(false);
+    localStorage.setItem('profileCueShown', '1');
+    if (user) {
+      navigate('/profile');
+    } else {
+      setShowAuthModal(true);
+    }
+  };
+
+  useProfileCue(profileBtnRef, showProfileCue);
   
   const handleNavigation = async (item: typeof menuItems[0]) => {
-    if (item.requiresAuth && !currentUser) {
+    if (item.label === 'My Profile') {
+      handleProfileClick();
+      if (isOpen) setIsOpen(false);
+      return;
+    }
+    if (item.requiresAuth && !user) {
       setShowAuthModal(true);
       return;
     }
-    
     setIsNavigating(true);
     if (item.onClick) {
       await item.onClick();
@@ -81,6 +112,11 @@ const Navbar = () => {
       href: "/my-recipes",
       requiresAuth: true
     },
+    {
+      label: "My Profile",
+      href: "/profile",
+      requiresAuth: true
+    },
   ];
 
   return (
@@ -100,7 +136,28 @@ const Navbar = () => {
             {menuItems.map((item) => {
               const isActive = item.href.startsWith('/') ? location.pathname === item.href : location.hash === item.href;
               const Component = item.href.startsWith('#') ? 'a' : Link;
-              
+              if (item.label === 'My Profile') {
+                return (
+                  <Component
+                    key={item.label}
+                    ref={profileBtnRef}
+                    href={item.href.startsWith('#') ? item.href : undefined}
+                    to={item.href.startsWith('#') ? undefined : item.href}
+                    onClick={() => handleProfileClick()}
+                    className={`text-sm font-medium relative ${
+                      isActive
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-primary"
+                    } transition-colors ${
+                      isActive
+                        ? "after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary after:rounded-full"
+                        : ""
+                    } ${isNavigating ? 'opacity-50 pointer-events-none' : ''}`}
+                  >
+                    {item.label}
+                  </Component>
+                );
+              }
               return (
                 <Component
                   key={item.label}
@@ -121,15 +178,36 @@ const Navbar = () => {
                 </Component>
               );
             })}
+      {/* Profile dialogs removed; handled by /profile page */}
           </div>
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
             <ThemeToggle />
-            <SignInDialog 
-              open={showAuthModal} 
-              onOpenChange={setShowAuthModal}
-            />
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-foreground">{user.name}</span>
+                <>
+                  <Button variant="outline" size="sm" onClick={() => setShowSignOutDialog(true)}>
+                    Sign Out
+                  </Button>
+                  <ConfirmDialog
+                    open={showSignOutDialog}
+                    title="Sign Out"
+                    description="Are you sure you want to sign out?"
+                    confirmText="Yes"
+                    cancelText="No"
+                    onConfirm={() => { setShowSignOutDialog(false); logout(); }}
+                    onCancel={() => setShowSignOutDialog(false)}
+                  />
+                </>
+              </div>
+            ) : (
+              <SignInDialog 
+                open={showAuthModal} 
+                onOpenChange={setShowAuthModal}
+              />
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -165,10 +243,30 @@ const Navbar = () => {
               <div className="flex justify-start px-2">
                 <ThemeToggle />
               </div>
-              <SignInDialog 
-                open={showAuthModal} 
-                onOpenChange={setShowAuthModal} 
-              />
+              {user ? (
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-foreground">{user.name}</span>
+                  <>
+                    <Button variant="outline" size="sm" onClick={() => setShowSignOutDialog(true)}>
+                      Sign Out
+                    </Button>
+                    <ConfirmDialog
+                      open={showSignOutDialog}
+                      title="Sign Out"
+                      description="Are you sure you want to sign out?"
+                      confirmText="Yes"
+                      cancelText="No"
+                      onConfirm={() => { setShowSignOutDialog(false); logout(); }}
+                      onCancel={() => setShowSignOutDialog(false)}
+                    />
+                  </>
+                </div>
+              ) : (
+                <SignInDialog 
+                  open={showAuthModal} 
+                  onOpenChange={setShowAuthModal} 
+                />
+              )}
             </div>
           </div>
         )}

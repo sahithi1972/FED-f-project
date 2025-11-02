@@ -1,164 +1,140 @@
-import { useState } from "react";
-import { Button } from "./ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Checkbox } from "./ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { cn } from "../lib/utils";
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { useAuth } from '../contexts/auth-context';
 
-type AuthMode = "signin" | "signup";
+interface AuthDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
 
-export function AuthDialog() {
-  const [mode, setMode] = useState<AuthMode>("signin");
-  const [isOpen, setIsOpen] = useState(false);
+export const AuthDialog: React.FC<AuthDialogProps> = ({ open, onOpenChange }) => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { login, register } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-  };
+    setLoading(true);
+    setError('');
 
-  const toggleMode = () => {
-    setMode(mode === "signin" ? "signup" : "signin");
+    try {
+      if (isLogin) {
+        await login(email, password, rememberMe);
+      } else {
+        await register(email, password, name);
+      }
+      onOpenChange(false);
+      // Reset form
+      setEmail('');
+      setPassword('');
+      setName('');
+      setRememberMe(false);
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">Sign In</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{mode === "signin" ? "Sign In" : "Create Account"}</DialogTitle>
-          <DialogDescription>
-            {mode === "signin" 
-              ? "Welcome back! Sign in to your account." 
-              : "Join us to start your zero-waste cooking journey."}
-          </DialogDescription>
+          <DialogTitle className="text-2xl font-bold text-center">
+            {isLogin ? 'Welcome Back' : 'Create Account'}
+          </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+              {error}
             </div>
+          )}
 
+          {!isLogin && (
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required />
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Enter your full name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
             </div>
+          )}
 
-            {mode === "signup" && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <Input id="confirmPassword" type="password" required />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="cuisinePreferences">Cuisine Preferences</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select cuisines" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="italian">Italian</SelectItem>
-                      <SelectItem value="mexican">Mexican</SelectItem>
-                      <SelectItem value="indian">Indian</SelectItem>
-                      <SelectItem value="chinese">Chinese</SelectItem>
-                      <SelectItem value="mediterranean">Mediterranean</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Dietary Restrictions</Label>
-                  <div className="grid grid-cols-2 gap-4 pt-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="vegetarian" />
-                      <Label htmlFor="vegetarian">Vegetarian</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="vegan" />
-                      <Label htmlFor="vegan">Vegan</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="glutenFree" />
-                      <Label htmlFor="glutenFree">Gluten-free</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="dairyFree" />
-                      <Label htmlFor="dairyFree">Dairy-free</Label>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {mode === "signin" && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="remember" />
-                  <Label htmlFor="remember">Remember me</Label>
-                </div>
-                <Button variant="link" className="px-0">Forgot password?</Button>
-              </div>
-            )}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
 
-          <div className="space-y-4">
-            <Button type="submit" className="w-full">
-              {mode === "signin" ? "Sign In" : "Create Account"}
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" type="button">
-                Google
-              </Button>
-              <Button variant="outline" type="button">
-                Facebook
-              </Button>
-            </div>
-
-            <div className="text-center text-sm">
-              {mode === "signin" ? (
-                <p>
-                  Don't have an account?{" "}
-                  <Button variant="link" className="p-0" onClick={toggleMode}>
-                    Sign Up
-                  </Button>
-                </p>
-              ) : (
-                <p>
-                  Already have an account?{" "}
-                  <Button variant="link" className="p-0" onClick={toggleMode}>
-                    Sign In
-                  </Button>
-                </p>
-              )}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              minLength={8}
+              required
+            />
+            <p className="text-xs text-gray-500">Password must be at least 8 characters long</p>
           </div>
+
+          {isLogin && (
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+              />
+              <Label htmlFor="rememberMe" className="text-sm">
+                Remember me
+              </Label>
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            disabled={loading}
+          >
+            {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+          </Button>
         </form>
+
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => setIsLogin(!isLogin)}
+            className="text-sm text-green-600 hover:text-green-700 font-medium"
+          >
+            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );
-}
+};

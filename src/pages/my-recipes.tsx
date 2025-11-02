@@ -3,10 +3,12 @@ import { MyRecipesDashboard } from "../components/RecipeDiscovery/components/MyR
 import { PageTransition } from "@/components/PageTransition";
 import { Spinner } from "@/components/ui/spinner";
 
-export default function MyRecipesPage() {
-  const { currentUser, isLoading } = useAuth();
 
-  if (isLoading) {
+export default function MyRecipesPage() {
+  const { user, loading } = useAuth();
+
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spinner size="lg" />
@@ -14,13 +16,14 @@ export default function MyRecipesPage() {
     );
   }
 
-  if (!currentUser) {
+
+  if (!user) {
     return null; // ProtectedRoute will handle the redirect
   }
 
   return (
     <PageTransition>
-      <MyRecipesDashboard userId={currentUser.email} />
+      <MyRecipesDashboard userId={user.email} />
     </PageTransition>
   );
 }

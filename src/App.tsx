@@ -9,6 +9,7 @@ import { ChatbotWidget } from "./components/ChatbotWidget";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { PageTransition } from "./components/PageTransition";
 import { Spinner } from "./components/ui/spinner";
+import { BackendTest } from "./components/BackendTest";
 import Index from "./pages/index";
 import NotFound from "./pages/Notfound";
 import HowItWorks from "./pages/how-it-works";
@@ -170,6 +171,7 @@ const App: React.FC = () => {
               <AnimatedRoutes />
               <ChatbotWidget />
               <Toaster />
+              <BackendTest />
             </AuthModalProvider>
           </AuthProvider>
         </BrowserRouter>
