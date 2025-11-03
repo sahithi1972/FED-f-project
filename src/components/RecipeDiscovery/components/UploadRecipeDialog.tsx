@@ -124,16 +124,52 @@ export function UploadRecipeDialog({ open, onClose }: UploadRecipeFormProps) {
     }
 
     try {
-      // TODO: Implement actual API call here
-      console.log("Submitting recipe:", { ...formData, isDraft });
+      // Persist to localStorage for now (namespaced per user if available)
+      const saveRecipe = async () => {
+        let imageData = "";
+        if (formData.image) {
+          // convert to data URL (base64) so it can be persisted in localStorage
+          imageData = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ""));
+            reader.onerror = reject;
+            reader.readAsDataURL(formData.image as Blob);
+          });
+        }
+
+        const stored = localStorage.getItem('myRecipes');
+        const list = stored ? JSON.parse(stored) : [];
+        const newRecipe = {
+          id: `local-${Date.now()}`,
+          title: formData.title,
+          ingredients: formData.ingredients,
+          steps: formData.steps,
+          cookingTime: formData.cookingTime,
+          budget: formData.budget,
+          tags: formData.tags,
+          image: imageData,
+          status: isDraft ? 'draft' : 'published',
+          stats: { views: 0, likes: 0, saves: 0 },
+          updatedAt: new Date().toISOString()
+        };
+
+        list.unshift(newRecipe);
+        localStorage.setItem('myRecipes', JSON.stringify(list));
+        return newRecipe;
+      };
+
+      const saved = await saveRecipe();
       toast({
         title: isDraft ? "✨ Draft Saved" : "🎉 Recipe Published!",
         description: isDraft 
-          ? "Your recipe draft has been saved."
-          : "Your recipe is now live for everyone to enjoy!"
+          ? "Your recipe draft has been saved. You can edit it from My Recipes." 
+          : "Your recipe is now live in My Recipes."
       });
+      // Close dialog after save
       onClose();
+      console.log('Saved recipe locally', saved);
     } catch (error) {
+      console.error('Failed to save recipe locally:', error);
       toast({
         title: "❌ Error",
         description: "Failed to save recipe. Please try again."
@@ -143,7 +179,12 @@ export function UploadRecipeDialog({ open, onClose }: UploadRecipeFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto upload-dialog-content"
+        style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+      >
+        {/* Hide webkit scrollbar for this dialog only */}
+        <style>{`.upload-dialog-content::-webkit-scrollbar{display:none}`}</style>
         <DialogHeader>
           <DialogTitle>Upload New Recipe</DialogTitle>
         </DialogHeader>
@@ -230,7 +271,7 @@ export function UploadRecipeDialog({ open, onClose }: UploadRecipeFormProps) {
               <Label htmlFor="budget">Budget Range</Label>
               <select
                 id="budget"
-                className="w-full p-2 rounded-md border"
+                className="w-full p-2 rounded-md border bg-white text-black"
                 value={formData.budget}
                 onChange={e => setFormData(prev => ({ ...prev, budget: e.target.value }))}
               >

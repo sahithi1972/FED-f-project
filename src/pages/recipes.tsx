@@ -1,387 +1,371 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { RecipeSearchFilter, SearchFilters } from '../components/RecipeSearchFilter';
+import { useNavigate } from 'react-router-dom';
+import { Search, Sun, Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Badge } from '../components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { RecipeCard } from '../components/RecipeCard';
 import { WeatherService, WeatherData } from '../services/weatherService';
+import { RecipeSearchFilter, SearchFilters } from '../components/RecipeSearchFilter';
+import { RecipeDetailModal } from '../components/RecipeDetailModal';
+import { VoiceInput } from '../components/VoiceInput';
+import { UploadRecipeDialog } from '../components/RecipeDiscovery/components/UploadRecipeDialog';
+import { Recipe } from '@/types/recipe';
+import { dummyRecipes } from '../data/dummy-recipes';
 
-interface Recipe {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  cookingTime: number;
-  difficulty: string;
-  servings: number;
-  tags: string[];
-  matchScore?: number;
-  ingredients: string[];
-}
+// Filter tabs with categories
+const filterTabs = [
+  { id: 'most-relevant', label: '🎯 Most Relevant' },
+  { id: 'trending', label: '📈 Trending Now' },
+  { id: 'quick', label: '⚡ Quick & Easy' },
+  { id: 'one-pot', label: '🍲 One-Pot Meals' },
+  { id: 'healthy', label: '🥗 Healthy Choices' },
+  { id: 'budget', label: '💰 Budget Friendly' },
+  { id: 'comfort', label: '🤗 Comfort Food' },
+  { id: 'seasonal', label: '🌞 Seasonal Picks' }
+];
 
-export default function Recipes() {
-  const location = useLocation();
+const Recipes = () => {
   const navigate = useNavigate();
-  const [showFilter, setShowFilter] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [ingredients, setIngredients] = useState<string[]>([]);
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [weatherSuggestions, setWeatherSuggestions] = useState<string[]>([]);
-  const [activeFilter, setActiveFilter] = useState('most-relevant');
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [weatherSuggestions, setWeatherSuggestions] = useState<Recipe[]>([]);
+  const [searchInput, setSearchInput] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string>('most-relevant');
+  const [showFilter, setShowFilter] = useState(false);
+  const [showRecipeDetail, setShowRecipeDetail] = useState(false);
+  const [showVoicePanel, setShowVoicePanel] = useState(false);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
 
-  // Show filter popup immediately when coming from home page
-  useEffect(() => {
-    if (location.state?.ingredients) {
-      setIngredients(location.state.ingredients);
-      setShowFilter(true);
-      // Don't load recipes yet - wait for filter submission
-      return;
+  const [filters, setFilters] = useState<SearchFilters>({
+    ingredients: [],
+    dietary: [],
+    cuisine: [],
+    healthRestrictions: [],
+    cookingTime: 60,
+    servings: 4,
+    mealType: '',
+    difficulty: 'medium'
+  });
+
+  // Filter recipes based on search criteria
+  const getFilteredRecipes = () => {
+    let filtered = dummyRecipes.map(recipe => ({
+      ...recipe,
+      matchScore: 1,
+      wasteReductionTips: [],
+      isPerfectForYou: false,
+      uri: '',
+      score: 1,
+      shareAs: '',
+      yield: recipe.servings || 4,
+      dietLabels: [],
+      healthLabels: recipe.tags || [],
+      cautions: [],
+      ingredientLines: recipe.ingredients || [],
+      calories: 0,
+      glycemicIndex: 0,
+      totalTime: recipe.cookingTime || 0,
+      cuisineType: [],
+      mealType: [],
+      dishType: [],
+      instructions: [],
+      tags: recipe.tags || [],
+      tips: [],
+      source: '',
+      url: '',
+      servings: recipe.servings || 4,
+      ingredients: recipe.ingredients || []
+    }));
+
+    // Apply tag filters
+    if (selectedTag !== 'most-relevant') {
+      switch (selectedTag) {
+        case 'trending':
+          filtered = filtered.filter(recipe => recipe.trending);
+          break;
+        case 'quick':
+          filtered = filtered.filter(recipe => recipe.cookingTime <= 30);
+          break;
+        case 'one-pot':
+          filtered = filtered.filter(recipe => recipe.onePot);
+          break;
+        case 'healthy':
+          filtered = filtered.filter(recipe => recipe.healthLabels.includes('Healthy'));
+          break;
+        case 'budget':
+          filtered = filtered.filter(recipe => recipe.tags.includes('Budget'));
+          break;
+        case 'comfort':
+          filtered = filtered.filter(recipe => recipe.tags.includes('Comfort'));
+          break;
+        case 'seasonal':
+          filtered = filtered.filter(recipe => recipe.seasonal);
+          break;
+      }
     }
-    // If not coming from home page, load recipes normally
-    loadSampleRecipes();
-  }, [location.state]);
 
-  // Load weather data
+    // Apply text search if provided
+    if (searchInput.trim()) {
+      const searchTerms = searchInput.toLowerCase().split(/\s+/);
+      filtered = filtered.filter(recipe => {
+        const searchableText = `${recipe.title} ${recipe.description} ${recipe.ingredients.join(' ')}`.toLowerCase();
+        return searchTerms.every(term => searchableText.includes(term));
+      });
+    }
+
+    // Apply ingredient filters
+    if (filters.ingredients.length > 0) {
+      filtered = filtered.filter(recipe => 
+        filters.ingredients.every(ingredient =>
+          recipe.ingredients.some(recipeIng => 
+            recipeIng.toLowerCase().includes(ingredient.toLowerCase())
+          )
+        )
+      );
+    }
+
+    return filtered.slice(0, 30); // Return up to 30 recipes
+  };
+
+  // Update recipes when filters change
+  useEffect(() => {
+    setRecipes(getFilteredRecipes());
+  }, [selectedTag, searchInput, filters.ingredients]);
+
+  // Load weather and initial recipes
   useEffect(() => {
     const loadWeather = async () => {
       try {
         const weatherData = await WeatherService.getCurrentWeather();
         setWeather(weatherData);
-        const suggestions = WeatherService.getWeatherBasedRecipes(weatherData);
-        setWeatherSuggestions(suggestions);
+
+        // Set weather-appropriate recipes
+        const weatherBasedRecipes = getFilteredRecipes().filter(recipe => {
+          if (weatherData.temperature > 25) {
+            return recipe.tags.includes('Cold') || recipe.tags.includes('Fresh');
+          }
+          if (weatherData.temperature < 15) {
+            return recipe.tags.includes('Hot') || recipe.tags.includes('Comfort');
+          }
+          return recipe.seasonal;
+        }).slice(0, 5);
+
+        setWeatherSuggestions(weatherBasedRecipes);
       } catch (error) {
-        console.error('Failed to load weather data:', error);
+        console.error('Failed to load weather:', error);
       }
     };
 
     loadWeather();
+    setRecipes(getFilteredRecipes());
   }, []);
 
-  // Load sample recipes (replace with API call)
-  useEffect(() => {
-    loadSampleRecipes();
-  }, []);
-
-  const loadSampleRecipes = async () => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      const sampleRecipes: Recipe[] = [
-        {
-          id: '1',
-          title: 'Zero-Waste Vegetable Stir Fry',
-          description: 'A delicious stir fry that uses commonly leftover vegetables to reduce food waste',
-          image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop',
-          cookingTime: 20,
-          difficulty: 'Easy',
-          servings: 4,
-          tags: ['vegetarian', 'quick', 'low-waste', 'healthy'],
-          ingredients: ['bell pepper', 'carrot', 'onion', 'garlic', 'soy sauce']
-        },
-        {
-          id: '2',
-          title: 'Leftover Bread Pudding',
-          description: 'Turn stale bread into a delicious dessert while reducing food waste',
-          image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop',
-          cookingTime: 45,
-          difficulty: 'Easy',
-          servings: 6,
-          tags: ['dessert', 'leftovers', 'comfort-food', 'sweet'],
-          ingredients: ['stale bread', 'milk', 'eggs', 'sugar', 'cinnamon']
-        },
-        {
-          id: '3',
-          title: 'Root Vegetable Soup',
-          description: 'Hearty soup using root vegetables that often get forgotten in the fridge',
-          image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&h=300&fit=crop',
-          cookingTime: 40,
-          difficulty: 'Medium',
-          servings: 4,
-          tags: ['vegan', 'comfort-food', 'healthy', 'soup'],
-          ingredients: ['potato', 'carrot', 'onion', 'celery', 'vegetable broth']
-        },
-        {
-          id: '4',
-          title: 'Overripe Banana Smoothie',
-          description: 'Don\'t throw away those brown bananas! Make a nutritious smoothie instead',
-          image: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=400&h=300&fit=crop',
-          cookingTime: 5,
-          difficulty: 'Easy',
-          servings: 2,
-          tags: ['breakfast', 'quick', 'healthy', 'smoothie'],
-          ingredients: ['banana', 'yogurt', 'milk', 'honey', 'cinnamon']
-        }
-      ];
-      setRecipes(sampleRecipes);
-      setLoading(false);
-    }, 1000);
+  const handleSearch = (searchFilters: SearchFilters) => {
+    setFilters(searchFilters);
   };
 
-  const handleSearch = (filters: SearchFilters) => {
-    setIngredients(filters.ingredients);
-    // Load recipes after filter submission
-    loadSampleRecipes();
-    // In real app, you would make API call with filters
-    console.log('Searching with filters:', filters);
-  };
-
-  const handleQuickSearch = (query: string) => {
-    setSearchQuery(query);
-    // Filter recipes based on query
-    const filtered = recipes.filter(recipe =>
-      recipe.title.toLowerCase().includes(query.toLowerCase()) ||
-      recipe.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
-    );
-    setRecipes(filtered);
-  };
-
-  const getFilteredRecipes = () => {
-    let filtered = [...recipes];
-    
-    switch (activeFilter) {
-      case 'trending':
-        filtered = filtered.sort(() => Math.random() - 0.5); // Randomize for demo
-        break;
-      case 'quick':
-        filtered = filtered.filter(recipe => recipe.cookingTime <= 30);
-        break;
-      case 'one-pot':
-        filtered = filtered.filter(recipe => recipe.tags.includes('one-pot') || recipe.tags.includes('easy'));
-        break;
-      case 'most-relevant':
-      default:
-        // Sort by match score or keep original order
-        break;
-    }
-
-    return filtered;
+  const handleVoiceTranscript = (transcript: string) => {
+    setSearchInput(transcript.trim());
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      {/* Header Section */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div className="min-h-screen bg-background recipes-page">
+      <style>{`.recipes-page .bg-secondary{background-color:#0ea5a3 !important;color:#fff !important}.recipes-page .bg-primary{background-color:#10b981 !important}.recipes-page .card:hover{transform:translateY(-6px)}.recipes-page .view-recipe-btn{animation:none}`}</style>
+      <div className="container mx-auto px-4 py-8">
+        <style>{`
+          /* hide horizontal scrollbar for weather scroll container */
+          .recipes-page .weather-scroll::-webkit-scrollbar { display: none; }
+          .recipes-page .weather-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+          /* ensure consistent look for cards in the weather strip */
+          .recipes-page .weather-strip-card img { object-fit: cover; }
+        `}</style>
+        {/* Header */}
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-4">Discover Recipes</h1>
+            <p className="text-gray-500">Find perfect recipes based on your ingredients and preferences</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={() => setShowFilter(true)} className="bg-transparent hover:bg-green-700/10">
+              Refine Search
+            </Button>
+            <Button onClick={() => setIsUploadDialogOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Upload Recipe
+            </Button>
+            <Button onClick={() => navigate('/')} className="bg-green-600 hover:bg-green-700">
+              ← Back Home
+            </Button>
+          </div>
+        </div>
+
+        {/* Quick Search + Voice Input (full width) */}
+        <div className="mb-8">
+          <div className="bg-card/60 border rounded-lg p-6">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                Discover Recipes
-              </h1>
-              <p className="text-gray-600 text-lg">
-                Find perfect recipes based on your ingredients and preferences
-              </p>
-            </div>
-            
-            <div className="flex gap-3">
-              <Button
-                onClick={() => setShowFilter(true)}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 text-lg font-semibold rounded-xl shadow-lg"
-              >
-                🎯 Refine Search
-              </Button>
-              <Button
-                onClick={() => navigate('/')}
-                variant="outline"
-                className="border-2 border-gray-300 text-gray-700 px-6 py-3 text-lg font-semibold rounded-xl hover:bg-gray-50"
-              >
-                ← Back Home
-              </Button>
+              <h3 className="text-lg font-semibold mb-2">Quick Search</h3>
+
+              <div className="flex gap-3 items-center">
+                <Input
+                  type="text"
+                  placeholder="Say ingredients like 'tomatoes chicken rice'..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="flex-1"
+                />
+
+                <Button
+                  variant={showVoicePanel ? 'default' : 'outline'}
+                  onClick={() => setShowVoicePanel(v => !v)}
+                  className="flex items-center gap-2"
+                >
+                  {showVoicePanel ? 'Hide Voice' : 'Voice'}
+                </Button>
+
+                <Button onClick={() => setShowFilter(true)} className="ml-1">
+                  Refine
+                </Button>
+              </div>
+
+              <AnimatePresence>
+                {showVoicePanel && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.28 }}
+                    className="overflow-hidden mt-4"
+                  >
+                    <div className="p-4 rounded-lg bg-[#06120f] border border-emerald-900 shadow-sm">
+                      <div className="flex items-start gap-6">
+                        <div className="flex-1">
+                          <p className="text-emerald-200 text-sm mb-2">Try saying:</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {[
+                              "tomatoes onions chicken",
+                              "vegetarian pasta recipes",
+                              "quick dinner with rice",
+                              "one-pot meals",
+                              "budget friendly dinner"
+                            ].map((s) => (
+                              <button
+                                key={s}
+                                onClick={() => { setSearchInput(s); setShowVoicePanel(false); }}
+                                className="text-emerald-300 text-sm text-left px-3 py-2 rounded-md hover:bg-emerald-900/30 transition"
+                              >
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="w-64">
+                          <VoiceInput onTranscript={handleVoiceTranscript} theme="dark" compact />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Weather & Quick Search Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Weather Card */}
-          {weather && (
-            <Card className="lg:col-span-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-xl border-0">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-2xl font-bold">Current Weather</h3>
-                    <p className="text-blue-100">{weather.location}</p>
-                  </div>
-                  <span className="text-4xl">{weather.icon}</span>
-                </div>
-                <div className="text-center">
-                  <p className="text-5xl font-bold mb-2">{weather.temperature}°C</p>
-                  <p className="text-xl text-blue-100">{weather.condition}</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Quick Search & Weather Suggestions */}
-          <Card className="lg:col-span-2 shadow-xl border-0">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Quick Search */}
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">🔍 Quick Search</h3>
-                  <div className="flex gap-2">
-                    <Input
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search recipes..."
-                      className="flex-1 h-12 text-lg border-2 border-gray-200 focus:border-green-500"
-                      onKeyPress={(e) => e.key === 'Enter' && handleQuickSearch(searchQuery)}
-                    />
-                    <Button 
-                      onClick={() => handleQuickSearch(searchQuery)}
-                      className="bg-green-500 hover:bg-green-600 h-12 px-6"
-                    >
-                      Search
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Weather Suggestions */}
-                {weatherSuggestions.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">🌤️ Perfect for this Weather</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {weatherSuggestions.map((suggestion, index) => (
-                        <span
-                          key={index}
-                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
-                        >
-                          {suggestion}
-                        </span>
-                      ))}
+        {/* Weather-based Suggestions (full width) */}
+        {weather && weatherSuggestions.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-8">
+            <div className="flex items-center mb-4">
+              <Sun className="inline-block mr-2" />
+              <h3 className="text-xl font-semibold">Weather-based Suggestions ({weather.temperature}°C, {weather.condition})</h3>
+            </div>
+            {/* Horizontal scroll; hide scrollbar via weather-scroll class */}
+            <div className="overflow-x-auto weather-scroll">
+              <div className="flex gap-6 w-max items-stretch">
+                {weatherSuggestions.map((recipe) => (
+                  <motion.div key={recipe.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="min-w-[260px] h-[420px] flex-shrink-0 flex">
+                    {/* Make the RecipeCard stretch to full height */}
+                    <div className="flex-1 flex flex-col">
+                      <RecipeCard className="h-full flex flex-col" recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />
                     </div>
-                  </div>
-                )}
+                  </motion.div>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </motion.div>
+        )}
 
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-4 mb-8">
-          {[
-            { id: 'most-relevant', label: '🔥 Most Relevant', icon: '🎯' },
-            { id: 'trending', label: '📈 Trending', icon: '🚀' },
-            { id: 'quick', label: '⚡ Quick & Easy', icon: '⏱️' },
-            { id: 'one-pot', label: '🍲 One-Pot Meals', icon: '❤️' }
-          ].map(filter => (
-            <button
-              key={filter.id}
-              onClick={() => setActiveFilter(filter.id)}
-              className={`px-6 py-3 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 ${
-                activeFilter === filter.id
-                  ? 'bg-green-500 text-white shadow-lg'
-                  : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-green-300'
-              }`}
+        {/* Filter Tags (centered row) */}
+        <div className="flex flex-wrap gap-3 justify-start mb-8">
+          {filterTabs.map((tab) => (
+            <Badge
+              key={tab.id}
+              variant={selectedTag === tab.id ? 'default' : 'outline'}
+              className={`cursor-pointer px-3 py-1 rounded-full text-sm flex items-center gap-2 ${selectedTag === tab.id ? 'bg-emerald-600 text-white shadow-md' : 'bg-transparent border border-transparent text-emerald-300 hover:bg-emerald-900/30'}`}
+              onClick={() => setSelectedTag(tab.id)}
             >
-              {filter.icon} {filter.label}
-            </button>
+              <span className="leading-4">{tab.label}</span>
+            </Badge>
           ))}
         </div>
 
-        {/* Ingredients Display */}
-        {ingredients.length > 0 && (
-          <Card className="mb-8 shadow-lg border-0">
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                <span className="w-2 h-6 bg-green-500 rounded-full mr-3"></span>
-                Your Ingredients
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                {ingredients.map((ingredient, index) => (
-                  <span
-                    key={index}
-                    className="bg-gradient-to-r from-green-100 to-blue-100 text-green-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm border border-green-200"
-                  >
-                    {ingredient}
-                  </span>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Recipe Grid */}
+        <div>
+          <h2 className="text-2xl font-bold mb-6">
+            {selectedTag === 'most-relevant' ? 'All Recipes' : `${filterTabs.find(tab => tab.id === selectedTag)?.label} Recipes`}
+          </h2>
+          {recipes.length > 0 ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {recipes.map((recipe) => (
+                <motion.div key={recipe.id} whileHover={{ translateY: -6, boxShadow: '0 10px 30px rgba(0,0,0,0.35)' }} transition={{ type: 'spring', stiffness: 300 }}>
+                  <RecipeCard recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">No recipes found. Try adjusting your filters or search terms.</p>
+              <Button onClick={() => {
+                setSelectedTag('most-relevant');
+                setSearchInput('');
+                setFilters({
+                  ingredients: [],
+                  dietary: [],
+                  cuisine: [],
+                  healthRestrictions: [],
+                  cookingTime: 60,
+                  servings: 4,
+                  mealType: '',
+                  difficulty: 'medium'
+                });
+              }}>
+                Reset Filters
+              </Button>
+            </div>
+          )}
+        </div>
 
-        {/* Recipes Grid */}
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
-            <p className="text-gray-600 mt-4 text-lg">Finding delicious recipes for you...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {getFilteredRecipes().map(recipe => (
-              <Card key={recipe.id} className="shadow-lg border-0 hover-lift transition-all duration-300 cursor-pointer">
-                <CardContent className="p-0">
-                  <div className="relative">
-                    <img
-                      src={recipe.image}
-                      alt={recipe.title}
-                      className="w-full h-48 object-cover rounded-t-xl"
-                    />
-                    <div className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                      {recipe.difficulty}
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2">
-                      {recipe.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                      {recipe.description}
-                    </p>
-                    
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                      <span>⏱️ {recipe.cookingTime} min</span>
-                      <span>👥 {recipe.servings} servings</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {recipe.tags.slice(0, 3).map(tag => (
-                        <span
-                          key={tag}
-                          className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold">
-                      View Recipe
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* No Results */}
-        {!loading && getFilteredRecipes().length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🍳</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">No recipes found</h3>
-            <p className="text-gray-600 mb-6">Try adjusting your search criteria or add more ingredients</p>
-            <Button
-              onClick={() => setShowFilter(true)}
-              className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 text-lg font-semibold"
-            >
-              Refine Search
-            </Button>
-          </div>
+        {/* Modals */}
+        <RecipeSearchFilter
+          open={showFilter}
+          onOpenChange={setShowFilter}
+          onSearch={handleSearch}
+          initialIngredients={filters.ingredients}
+        />
+        <UploadRecipeDialog open={isUploadDialogOpen} onClose={() => setIsUploadDialogOpen(false)} />
+        {selectedRecipe && (
+          <RecipeDetailModal
+            recipe={selectedRecipe as any}
+            open={!!selectedRecipe}
+            onOpenChange={(open) => !open && setSelectedRecipe(null)}
+          />
         )}
       </div>
-
-      {/* Search Filter Modal */}
-      <RecipeSearchFilter
-        open={showFilter}
-        onOpenChange={setShowFilter}
-        initialIngredients={ingredients}
-        onSearch={handleSearch}
-      />
     </div>
   );
-}
+};
+
+export default Recipes;

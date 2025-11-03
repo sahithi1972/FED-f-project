@@ -23,7 +23,7 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
 }) => {
   return (
     <div
-      className="flex items-center gap-2 overflow-x-auto py-2 scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent"
+      className="flex items-center gap-2 overflow-x-auto py-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       aria-label="Quick filters"
       tabIndex={0}
     >
@@ -33,10 +33,10 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
           <button
             key={filter.id}
             type="button"
-            className={`flex items-center gap-1 px-3 py-1 rounded-full border text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/60 focus:ring-offset-2 ${
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-full border-2 text-sm font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:ring-offset-2 ${
               isActive
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-muted text-muted-foreground border-muted-foreground/20 hover:bg-accent hover:text-accent-foreground"
+                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500"
+                : "bg-black/40 text-emerald-200 border-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-300 hover:border-emerald-500/40"
             }`}
             aria-pressed={isActive}
             aria-label={filter.label}

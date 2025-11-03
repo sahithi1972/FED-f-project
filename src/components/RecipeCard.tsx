@@ -15,6 +15,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { cn } from "@/lib/utils";
 import { Heart, Clock, Award, Star } from "lucide-react";
 import React from "react";
+import { motion } from "framer-motion";
 
 import { type Recipe } from "@/types/recipe";
 
@@ -36,90 +37,100 @@ export const RecipeCard = React.memo(function RecipeCard({
   const {
     id,
     title,
-    image,
+    imageUrl,
     cookingTime,
     difficulty,
     rating,
-    cuisineType,
-    dietaryPreferences,
+    cuisine,
+    dietary,
     isFavorite,
   } = recipe;
 
   return (
-    <Card
-      className={cn(
-        "group overflow-hidden transition-all hover:shadow-lg hover:translate-y-[-4px] duration-300",
-        className
-      )}
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      whileHover={{ translateY: -4 }}
+      className={cn("group", className)}
     >
-      <CardHeader className="p-0">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
-          <img
-            src={image || '/placeholder-recipe.jpg'}
-            alt={title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
-          <Button
-            size="icon"
-            variant="ghost"
-            className="absolute right-2 top-2 h-8 w-8 rounded-full bg-white/80 hover:bg-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              onFavoriteToggle?.(id);
-            }}
-          >
-            <Heart
-              className={cn(
-                "h-5 w-5",
-                isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
-              )}
+      <Card className={cn("overflow-hidden transition-all duration-300 will-change-transform flex flex-col h-full", "hover:shadow-2xl") }>
+        <CardHeader className="p-0">
+          {/* Use a fixed image height so all cards render the same visual height */}
+          <div className="relative h-44 md:h-56 overflow-hidden rounded-t-lg bg-gray-800">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
+            <img
+              src={imageUrl || "/placeholder.svg"}
+              alt={title}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
             />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-2 p-4">
-        <div className="flex items-start justify-between">
-          <h3
-            className="line-clamp-2 cursor-pointer text-lg font-semibold hover:text-primary"
-            onClick={() => onClick?.(id)}
-          >
-            {title}
-          </h3>
-        </div>
-        <div className="flex flex-wrap gap-1">
-          <Badge variant="secondary" className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {cookingTime} mins
-          </Badge>
-          <Badge variant="secondary" className="flex items-center gap-1">
-            <Award className="h-3 w-3" />
-            {difficulty}
-          </Badge>
-          <Badge variant="secondary" className="flex items-center gap-1">
-            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-            {rating.toFixed(1)}
-          </Badge>
-        </div>
-        <div className="flex flex-wrap gap-1">
-          <Badge variant="outline">{cuisineType}</Badge>
-          {dietaryPreferences.map((pref) => (
-            <Badge key={pref} variant="outline">
-              {pref}
-            </Badge>
-          ))}
-        </div>
-      </CardContent>
-      <CardFooter className="px-4 pb-4 pt-0">
-        <Button
-          variant="secondary"
-          className="w-full"
-          onClick={() => onClick?.(id)}
-        >
-          View Recipe
-        </Button>
-      </CardFooter>
-    </Card>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="absolute right-2 top-2 h-8 w-8 rounded-full bg-white/80 hover:bg-white"
+              onClick={(e) => {
+                e.stopPropagation();
+                onFavoriteToggle?.(id);
+              }}
+            >
+              <Heart
+                className={cn(
+                  "h-5 w-5",
+                  isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
+                )}
+              />
+            </Button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-3 p-4 flex-1 flex flex-col">
+          <div className="flex flex-col gap-2">
+            <h3
+              className="line-clamp-2 cursor-pointer text-xl font-semibold text-emerald-300 leading-tight"
+              onClick={() => onClick?.(id)}
+            >
+              {title}
+            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge className="flex items-center gap-1 bg-emerald-800 text-emerald-300">
+                <Clock className="h-3 w-3" />
+                <span className="text-sm text-emerald-300">{cookingTime} mins</span>
+              </Badge>
+              <Badge className="flex items-center gap-1 bg-emerald-800 text-emerald-300">
+                <Award className="h-3 w-3" />
+                <span className="text-sm text-emerald-300">{difficulty}</span>
+              </Badge>
+              <Badge className="flex items-center gap-1 bg-emerald-800 text-emerald-300">
+                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                <span className="text-sm text-emerald-300">{rating.toFixed(1)}</span>
+              </Badge>
+            </div>
+          </div>
+
+          <div className="flex-1 mt-2">
+            <div className="flex flex-wrap gap-2">
+              <Badge className="bg-emerald-900 text-emerald-300">{cuisine}</Badge>
+              {dietary.map((pref) => (
+                <Badge key={pref} className="bg-emerald-900 text-emerald-300">{pref}</Badge>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+
+        <CardFooter className="px-4 pb-4 pt-0 mt-auto">
+          <motion.div whileHover={{ scale: 1.02 }} className="w-full">
+            <Button
+              variant="secondary"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white transition transform"
+              onClick={() => onClick?.(id)}
+            >
+              View Recipe
+            </Button>
+          </motion.div>
+        </CardFooter>
+      </Card>
+    </motion.div>
   );
 });

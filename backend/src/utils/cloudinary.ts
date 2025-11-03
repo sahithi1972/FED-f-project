@@ -1,6 +1,14 @@
 import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
+
+// Determine whether Cloudinary is configured; if not, fall back to local storage
+const CLOUDINARY_CONFIGURED = !!(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET
+);
 
 // Configure Cloudinary
 cloudinary.config({
@@ -40,6 +48,22 @@ export const upload = multer({
 
 export const uploadToCloudinary = async (filePath: string, folder: string): Promise<string> => {
   try {
+    if (!CLOUDINARY_CONFIGURED) {
+      // Ensure public uploads folder exists (backend/uploads/public)
+      const publicDir = path.join(__dirname, '..', '..', 'uploads', 'public');
+      if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
+
+      const filename = path.basename(filePath);
+      const destPath = path.join(publicDir, filename);
+
+      // Move temp file to public folder so it can be served
+      fs.renameSync(filePath, destPath);
+
+      const port = process.env.PORT || '5000';
+      const url = `http://localhost:${port}/uploads/public/${encodeURIComponent(filename)}`;
+      return url;
+    }
+
     const result = await cloudinary.uploader.upload(filePath, {
       folder: `wastechef/${folder}`,
       quality: 'auto',

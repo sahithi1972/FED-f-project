@@ -74,22 +74,37 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({
     setImagePreview(objectUrl);
 
     try {
-      const formData = new FormData();
-      formData.append('image', file);
+      const uploadForm = new FormData();
+      uploadForm.append('image', file);
 
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_BASE_URL}/upload/profile`, {
+
+      // The backend mounts upload routes at /api/upload (not /api/v1/upload),
+      // but API_BASE_URL may include /api/v1. Normalize to the app base URL.
+      const base = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+      const uploadUrl = `${base}/api/upload/image`;
+
+      const response = await fetch(uploadUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
         },
-        body: formData
+        body: uploadForm
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message);
+      if (!response.ok) {
+        // backend sends { success, message, data }
+        throw new Error(data?.message || 'Upload failed');
+      }
 
-      setFormData(prev => ({ ...prev, profileImage: data.url }));
+      // backend returns imageUrl inside data => { data: { imageUrl } }
+      const uploadedUrl = data?.data?.imageUrl || data?.imageUrl;
+      if (!uploadedUrl) throw new Error('No image URL returned from server');
+
+      // Update form data and preview to use the uploaded URL
+      setFormData(prev => ({ ...prev, profileImage: uploadedUrl }));
+      setImagePreview(uploadedUrl);
     } catch (err) {
       console.error('Upload error:', err);
       setError('Failed to upload image');

@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Ingredient = {
   name: string;
@@ -20,10 +21,18 @@ const popularIngredients: Ingredient[] = [
   { name: "Spinach", icon: "🥬" },
 ];
 
+const dietaryOptions = [
+  { label: "Vegetarian", value: "vegetarian" },
+  { label: "Vegan", value: "vegan" },
+  { label: "Gluten-Free", value: "gluten-free" },
+  { label: "Dairy-Free", value: "dairy-free" },
+];
+
 function IngredientSearch() {
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [suggestions, setSuggestions] = useState<Ingredient[]>([]);
+  const [activeTab, setActiveTab] = useState<'ingredients' | 'filters'>('ingredients');
   const navigate = useNavigate();
   const { toast } = useToast();
 

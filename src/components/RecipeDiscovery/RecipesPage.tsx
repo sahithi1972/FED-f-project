@@ -48,6 +48,7 @@ const suggestIngredientCombo = (currentIngredients: string[]) => {
 
 export default function RecipesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const headerRef = useRef<HTMLDivElement>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("relevant");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -149,13 +150,13 @@ export default function RecipesPage() {
           <div className="flex items-center gap-4">
             <div className="flex-1 relative">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-500/50" />
                 <input
                   type="search"
                   placeholder="Search recipes..."
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  className="w-full rounded-lg border bg-transparent px-4 py-2 pl-10 pr-12"
+                  className="w-full rounded-lg border border-emerald-500/20 bg-black/40 px-4 py-2 pl-10 pr-12 text-emerald-50 placeholder:text-emerald-500/50 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all duration-300"
                 />
                 <div className="absolute right-2 top-1/2 -translate-y-1/2">
                   <VoiceInput onIngredientsDetected={(ingredients) => {
@@ -179,7 +180,10 @@ export default function RecipesPage() {
               <Button
                 variant="outline"
                 size="icon"
-                className="shrink-0"
+                className={cn(
+                  "shrink-0 border-emerald-500/20 hover:bg-emerald-500/10",
+                  viewMode === "grid" ? "bg-emerald-500/20 text-emerald-500" : "text-emerald-400"
+                )}
                 onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
               >
                 {viewMode === "grid" ? (
@@ -190,7 +194,7 @@ export default function RecipesPage() {
               </Button>
               <Button
                 variant="default"
-                className="shrink-0"
+                className="shrink-0 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 hover:text-emerald-300 transition-colors duration-300"
                 onClick={() => setIsUploadDialogOpen(true)}
               >
                 <Plus className="h-4 w-4 mr-2" />

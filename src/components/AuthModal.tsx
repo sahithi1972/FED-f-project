@@ -39,6 +39,7 @@ export function AuthModal({ isOpen, onClose, initialMode = "signin" }: AuthModal
   const [cuisinePreferences, setCuisinePreferences] = useState<string[]>([]);
   const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const { login, register } = useAuth();
 
   const cuisines = ["Indian", "Italian", "Asian", "Mexican", "Chinese"];
@@ -74,9 +75,10 @@ export function AuthModal({ isOpen, onClose, initialMode = "signin" }: AuthModal
 
     try {
       // Use register from useAuth (only email, password, name supported)
-      await register(email, password, email.split('@')[0]);
-      alert('Account created! You can now sign in.');
-      setMode('signin');
+  await register(email, password, email.split('@')[0]);
+  // After successful registration, switch the modal to sign-in mode
+  // (remove blocking browser alert so user is immediately shown the sign-in form)
+  setMode('signin');
       setPassword("");
       setConfirmPassword("");
       setAcceptTerms(false);
@@ -311,10 +313,14 @@ export function AuthModal({ isOpen, onClose, initialMode = "signin" }: AuthModal
                   required
                 />
                 <Label htmlFor="terms" className="text-sm">
-                  I agree to the{" "}
-                  <a href="/terms" className="text-[#2D7A3E] hover:underline">
-                    Terms & Conditions
-                  </a>
+                    I agree to the{" "}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); setShowTermsModal(true); }}
+                      className="text-[#2D7A3E] hover:underline"
+                    >
+                      Terms & Conditions
+                    </button>
                 </Label>
               </div>
 
@@ -353,6 +359,36 @@ export function AuthModal({ isOpen, onClose, initialMode = "signin" }: AuthModal
           </div>
         </div>
       </DialogContent>
+
+      {/* Terms & Conditions inline modal */}
+      <Dialog open={showTermsModal} onOpenChange={() => setShowTermsModal(false)}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Terms & Conditions</DialogTitle>
+          </DialogHeader>
+
+          <div className="p-4 max-h-[60vh] overflow-y-auto text-sm space-y-4">
+            <p className="font-medium">Welcome to ZeroWasteChef — Terms & Conditions (Sample)</p>
+            <p>
+              These are placeholder terms and conditions for demonstration purposes. By using this service you agree to the following:
+            </p>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>You will try to reduce food waste where possible.</li>
+              <li>Content you upload must be your own or properly licensed.</li>
+              <li>We are not responsible for any damages resulting from use of recipes.</li>
+              <li>We may modify these terms from time to time; continued use constitutes acceptance.</li>
+            </ul>
+            <p>
+              This is a demo placeholder. Replace with your legal terms before going to production.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-2 p-4">
+            <Button variant="outline" onClick={() => setShowTermsModal(false)}>Close</Button>
+            <Button onClick={() => { setAcceptTerms(true); setShowTermsModal(false); }}>Confirm & Accept</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

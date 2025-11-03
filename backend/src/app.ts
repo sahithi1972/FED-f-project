@@ -22,6 +22,10 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
 
 const app = express();
 
+// Serve uploaded files (public) for local development if Cloudinary isn't used
+import path from 'path';
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }

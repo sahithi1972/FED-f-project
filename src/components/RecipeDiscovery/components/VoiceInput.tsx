@@ -8,17 +8,11 @@ interface VoiceInputProps {
   isListening?: boolean;
 }
 
-declare global {
-  interface Window {
-    webkitSpeechRecognition: any;
-  }
-}
-
 export function VoiceInput({ onIngredientsDetected, isListening: externalIsListening }: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false);
 
   const startVoiceInput = () => {
-    if (!window.webkitSpeechRecognition) {
+    if (!(window as any).webkitSpeechRecognition) {
       toast({
         title: "❌ Not Supported",
         description: "Voice input is not supported in your browser. Please use Chrome."
@@ -26,7 +20,8 @@ export function VoiceInput({ onIngredientsDetected, isListening: externalIsListe
       return;
     }
 
-    const recognition = new window.webkitSpeechRecognition();
+    const RecognitionCtor = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    const recognition = new RecognitionCtor();
     recognition.lang = "en-IN";
     recognition.continuous = false;
     recognition.interimResults = false;

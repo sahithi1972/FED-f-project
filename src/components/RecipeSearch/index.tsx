@@ -20,6 +20,11 @@ const RecipeSearch = () => {
     cookingTime: null,
     dietary: [],
     difficulty: [],
+    sort: 'relevance',
+    usesLeftovers: false,
+    onePot: false,
+    seasonal: false,
+    microwave: false,
   });
   const [sortBy, setSortBy] = useState<string>('relevance');
   const [searchState, setSearchState] = useState<SearchState>('idle');
@@ -35,19 +40,21 @@ const RecipeSearch = () => {
       const mockApiCall = new Promise<Recipe[]>((resolve) => {
         setTimeout(() => {
           resolve([
-            {
-              id: '1',
-              title: 'Vegetable Stir Fry',
-              description: 'A quick and healthy stir fry with seasonal vegetables',
-              cookingTime: 20,
-              cuisine: 'chinese',
-              ingredients: ['vegetables', 'soy sauce', 'ginger'],
-              dietary: ['vegetarian', 'vegan'],
-              difficulty: 'easy',
-              imageUrl: '/images/stir-fry.jpg'
-            },
-            // Add more mock recipes as needed
-          ]);
+              {
+                id: '1',
+                title: 'Vegetable Stir Fry',
+                description: 'A quick and healthy stir fry with seasonal vegetables',
+                cookingTime: 20,
+                cuisine: 'chinese',
+                ingredients: ['vegetables', 'soy sauce', 'ginger'],
+                dietary: ['vegetarian', 'vegan'],
+                difficulty: 'easy',
+                imageUrl: '/images/stir-fry.jpg',
+                cost: 150,
+                rating: 4.5
+              },
+              // Add more mock recipes as needed
+            ]);
         }, 1500);
       });
 
@@ -251,7 +258,7 @@ const RecipeSearch = () => {
             <Card key={recipe.id} className="flex flex-col">
               <CardHeader>
                 <div className="aspect-video relative rounded-md overflow-hidden mb-4">
-                  <img src={recipe.imageUrl} alt={recipe.title} className="object-cover w-full h-full" />
+                  <img src={recipe.imageUrl || '/placeholder.svg'} alt={recipe.title} className="object-cover w-full h-full" onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }} />
                 </div>
                 <CardTitle>{recipe.title}</CardTitle>
                 <CardDescription>{recipe.description}</CardDescription>

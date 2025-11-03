@@ -1,0 +1,253 @@
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Search, Sun } from 'lucide-react';
+import { RecipeCard } from '../components/RecipeCard';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Badge } from '../components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { WeatherService, WeatherData } from '../services/weatherService';
+import { RecipeSearchFilter, SearchFilters } from '../components/RecipeSearchFilter';
+import { RecipeDetailModal } from '../components/RecipeDetailModal';
+import { VoiceInput } from '../components/VoiceInput';
+import { Recipe } from '@/types/recipe';
+import { dummyRecipes } from '../data/dummy-recipes';
+
+// Filter tabs with categories
+const filterTabs = [
+  { id: 'most-relevant', label: '🎯 Most Relevant', icon: '👋' },
+  { id: 'trending', label: '📈 Trending Now', icon: '🔥' },
+  { id: 'quick', label: '⚡ Quick & Easy', icon: '⏱️' },
+  { id: 'one-pot', label: '🍲 One-Pot Meals', icon: '❤️' },
+  { id: 'healthy', label: '🥗 Healthy Choices', icon: '💚' },
+  { id: 'budget', label: '💰 Budget Friendly', icon: '💸' },
+  { id: 'comfort', label: '🤗 Comfort Food', icon: '🍛' },
+  { id: 'seasonal', label: '🌞 Seasonal Picks', icon: '🎄' }
+];
+
+export default function RecipesPage() {
+  const navigate = useNavigate();
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [weatherSuggestions, setWeatherSuggestions] = useState<Recipe[]>([]);
+  const [searchInput, setSearchInput] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string>('most-relevant');
+  const [showFilter, setShowFilter] = useState(false);
+
+  const [selectedFilters, setSelectedFilters] = useState<SearchFilters>({
+    ingredients: [],
+    dietary: [],
+    cuisine: [],
+    healthRestrictions: [],
+    cookingTime: 60,
+    servings: 4,
+    mealType: '',
+    difficulty: 'medium'
+  });
+
+  // Filter recipes based on search criteria
+  const getFilteredRecipes = () => {
+    let filtered = [...dummyRecipes];
+
+    // Apply tag filters
+    if (selectedTag !== 'most-relevant') {
+      switch (selectedTag) {
+        case 'trending':
+          filtered = filtered.filter(recipe => recipe.trending);
+          break;
+        case 'quick':
+          filtered = filtered.filter(recipe => recipe.cookingTime <= 30);
+          break;
+        case 'one-pot':
+          filtered = filtered.filter(recipe => recipe.onePot);
+          break;
+        case 'healthy':
+          filtered = filtered.filter(recipe => recipe.tags.includes('Healthy'));
+          break;
+        case 'budget':
+          filtered = filtered.filter(recipe => recipe.tags.includes('Budget'));
+          break;
+        case 'comfort':
+          filtered = filtered.filter(recipe => recipe.tags.includes('Comfort'));
+          break;
+        case 'seasonal':
+          filtered = filtered.filter(recipe => recipe.seasonal);
+          break;
+      }
+    }
+
+    // Apply text search if provided
+    if (searchInput.trim()) {
+      const searchTerms = searchInput.toLowerCase().split(/\s+/);
+      filtered = filtered.filter(recipe => {
+        const searchableText = `${recipe.title} ${recipe.description} ${recipe.ingredients.join(' ')}`.toLowerCase();
+        return searchTerms.every(term => searchableText.includes(term));
+      });
+    }
+
+    // Apply ingredient filters
+    if (selectedFilters.ingredients.length > 0) {
+      filtered = filtered.filter(recipe => 
+        selectedFilters.ingredients.every(ingredient =>
+          recipe.ingredients.some(recipeIng => 
+            recipeIng.toLowerCase().includes(ingredient.toLowerCase())
+          )
+        )
+      );
+    }
+
+    return filtered.slice(0, 30); // Return up to 30 recipes
+  };
+
+  // Update recipes when filters change
+  useEffect(() => {
+    setRecipes(getFilteredRecipes());
+  }, [selectedTag, searchInput, selectedFilters.ingredients]);
+
+  // Load weather and initial recipes
+  useEffect(() => {
+    const loadWeather = async () => {
+      try {
+        const weatherData = await WeatherService.getCurrentWeather();
+        setWeather(weatherData);
+
+        // Set weather-appropriate recipes
+        const weatherBasedRecipes = dummyRecipes.filter(recipe => {
+          if (weatherData.temperature > 25) {
+            return recipe.tags.includes('Cold') || recipe.tags.includes('Fresh');
+          }
+          if (weatherData.temperature < 15) {
+            return recipe.tags.includes('Hot') || recipe.tags.includes('Comfort');
+          }
+          return recipe.seasonal;
+        }).slice(0, 5);
+
+        setWeatherSuggestions(weatherBasedRecipes);
+      } catch (error) {
+        console.error('Failed to load weather:', error);
+      }
+    };
+
+    loadWeather();
+    setRecipes(getFilteredRecipes());
+  }, []);
+
+  const handleSearch = (filters: SearchFilters) => {
+    setSelectedFilters(filters);
+  };
+
+  const handleVoiceTranscript = (transcript: string) => {
+    setSearchInput(transcript.trim());
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-4">Discover Recipes</h1>
+          <p className="text-gray-500">Find perfect recipes based on your ingredients and preferences</p>
+        </div>
+
+        {/* Filter Tags */}
+        <div className="flex gap-2 mb-6">
+          {filterTabs.map((tab) => (
+            <Badge
+              key={tab.id}
+              variant={selectedTag === tab.id ? 'default' : 'outline'}
+              className="cursor-pointer"
+              onClick={() => setSelectedTag(tab.id)}
+            >
+              {tab.label}
+            </Badge>
+          ))}
+        </div>
+
+        {/* Search Bar */}
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-1">
+            <Input
+              type="text"
+              placeholder="Search recipes or ingredients..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full"
+            />
+          </div>
+          <VoiceInput onTranscript={handleVoiceTranscript} />
+          <Button onClick={() => setShowFilter(true)}>
+            Advanced Filters
+          </Button>
+        </div>
+
+        {/* Weather Card */}
+        {weather && weatherSuggestions.length > 0 && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>
+                <Sun className="inline-block mr-2" />
+                Weather-based Suggestions ({weather.temperature}°C, {weather.condition})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                {weatherSuggestions.map((recipe) => (
+                  <RecipeCard key={recipe.id} recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recipe Grid */}
+        <div>
+          <h2 className="text-2xl font-bold mb-6">
+            {selectedTag === 'most-relevant' ? 'All Recipes' : `${filterTabs.find(tab => tab.id === selectedTag)?.label} Recipes`}
+          </h2>
+          {recipes.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {recipes.map((recipe) => (
+                <RecipeCard key={recipe.id} recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">No recipes found. Try adjusting your filters or search terms.</p>
+              <Button onClick={() => {
+                setSelectedTag('most-relevant');
+                setSearchInput('');
+                setSelectedFilters({
+                  ingredients: [],
+                  dietary: [],
+                  cuisine: [],
+                  healthRestrictions: [],
+                  cookingTime: 60,
+                  servings: 4,
+                  mealType: '',
+                  difficulty: 'medium'
+                });
+              }}>
+                Reset Filters
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Modals */}
+        <RecipeSearchFilter
+          open={showFilter}
+          onOpenChange={setShowFilter}
+          onSearch={handleSearch}
+        />
+        {selectedRecipe && (
+          <RecipeDetailModal
+            recipe={selectedRecipe}
+            open={!!selectedRecipe}
+            onOpenChange={(open) => !open && setSelectedRecipe(null)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}

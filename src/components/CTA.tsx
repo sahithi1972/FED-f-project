@@ -49,21 +49,27 @@ const CTA = () => {
             <div className={`flex flex-col sm:flex-row justify-center gap-4 w-full sm:w-auto transition-all duration-700 delay-500 ${
               isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}>
-              {showSignIn ? (
-                <SignInDialog open={showSignIn} onOpenChange={setShowSignIn} />
-              ) : (
-                <Button
-                  size="lg"
-                  variant="hero"
-                  className="w-full sm:w-auto relative group overflow-hidden"
-                  onClick={() => setShowSignIn(true)}
-                >
-                  <span className="relative z-10 flex items-center justify-center">
-                    Start Your Journey
-                    <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-                  </span>
-                </Button>
-              )}
+              <Button
+                size="lg"
+                variant="hero"
+                className="w-full sm:w-auto relative group overflow-hidden"
+                onClick={() => {
+                  // Scroll to the ingredient search section on the home page
+                  if (window.location.pathname !== '/') {
+                    navigate('/');
+                    setTimeout(() => {
+                      document.getElementById('ingredient-search')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 300);
+                  } else {
+                    document.getElementById('ingredient-search')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+              >
+                <span className="relative z-10 flex items-center justify-center">
+                  Start Your Journey
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                </span>
+              </Button>
               <Button 
                 variant="outline" 
                 size="lg" 

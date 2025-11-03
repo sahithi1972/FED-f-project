@@ -18,6 +18,7 @@ import HowItWorks from "./pages/how-it-works";
 const LazyDashboard = React.lazy(() => import("@/pages/dashboard"));
 const LazyProfile = React.lazy(() => import("@/pages/profile"));
 const LazyRecipes = React.lazy(() => import("@/pages/recipes"));
+const LazyRecipeTest = React.lazy(() => import("@/pages/recipe-test"));
 const LazyInitialSearch = React.lazy(() => import("@/pages/initial-search"));
 const LazyRecipeResults = React.lazy(() => import("@/components/RecipeResultsPage"));
 const LazyMyRecipes = React.lazy(() => import("@/pages/my-recipes"));
@@ -156,6 +157,16 @@ function AnimatedRoutes() {
           element={
             <PageTransition>
               <HowItWorks />
+            </PageTransition>
+          } 
+        />
+        <Route 
+          path="/recipe-test" 
+          element={
+            <PageTransition>
+              <React.Suspense fallback={<LoadingFallback />}>
+                <LazyRecipeTest />
+              </React.Suspense>
             </PageTransition>
           } 
         />

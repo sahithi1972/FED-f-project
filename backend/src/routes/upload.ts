@@ -19,16 +19,27 @@ router.post('/image', authenticate, upload.single('image'), async (req: AuthRequ
     // Upload to Cloudinary
     const imageUrl = await uploadToCloudinary(req.file.path, folder);
 
-    // Clean up temporary file
-    fs.unlinkSync(req.file.path);
+    // Clean up temporary file if it still exists (uploadToCloudinary may have moved it)
+    try {
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (e) {
+      // Log and continue — failure to remove temp file should not break the request
+      console.warn('Failed to remove temp upload file:', e);
+    }
 
     sendResponse(res, 200, 'Image uploaded successfully', { imageUrl });
   } catch (error) {
     console.error('Upload image error:', error);
     
     // Clean up temporary file on error
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
+    try {
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (e) {
+      console.warn('Failed to remove temp upload file after error:', e);
     }
     
     sendError(res, 500, 'Failed to upload image');

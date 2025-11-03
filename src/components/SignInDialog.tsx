@@ -43,6 +43,8 @@ export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
   });
 
   const onSubmit = async (data: SignInFormData) => {
+    if (isLoading) return;
+    
     try {
       setIsLoading(true);
       await login(data.email, data.password, rememberMe);

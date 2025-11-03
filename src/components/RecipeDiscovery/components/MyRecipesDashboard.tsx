@@ -59,11 +59,24 @@ export function MyRecipesDashboard({ userId }: MyRecipesDashboardProps) {
 
   // Mock data - replace with actual API call
   useEffect(() => {
-    const mockRecipes: Recipe[] = [
+    // Try to load user recipes from localStorage first
+    const stored = localStorage.getItem('myRecipes');
+    if (stored) {
+      try {
+        const parsed: Recipe[] = JSON.parse(stored);
+        setRecipes(parsed);
+        return;
+      } catch (e) {
+        console.warn('Failed to parse local myRecipes:', e);
+      }
+    }
+
+    // Fallback to mock data
+      const mockRecipes: Recipe[] = [
       {
         id: "1",
         title: "Homemade Pizza",
-        image: "/images/recipes/pizza.jpg",
+        image: "/placeholder.svg",
         tags: ["Italian", "Dinner", "Vegetarian"],
         ingredients: ["Flour", "Yeast", "Tomato Sauce", "Cheese"],
         steps: [
@@ -81,7 +94,6 @@ export function MyRecipesDashboard({ userId }: MyRecipesDashboardProps) {
         },
         updatedAt: "2025-10-15"
       },
-      // Add more mock recipes here
     ];
 
     setRecipes(mockRecipes);

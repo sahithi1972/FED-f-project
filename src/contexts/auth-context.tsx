@@ -20,10 +20,13 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  currentUser?: User | null; // alias for compatibility
+  isAuthenticated?: boolean;
   login: (email: string, password: string, rememberMe: boolean) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  isLoading?: boolean; // alias for compatibility
   requiresProfileSetup: boolean;
   setProfileCompleted: () => void;
   updateUserData: (data: Partial<User>) => void;
@@ -83,12 +86,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string, rememberMe: boolean) => {
     try {
-  const response = await fetch('http://localhost:5000/api/v1/auth/login', {
+      const response = await fetch('http://localhost:5000/api/v1/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, rememberMe }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -98,6 +101,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       const { user: userData, token, refreshToken, requiresProfileSetup: needsSetup } = data.data;
+      
+      // Store token
+      localStorage.setItem('authToken', token);
+      if (rememberMe && refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+      }
+
+      // Update user state
+      setUser(userData);
+      setRequiresProfileSetup(needsSetup || false);
 
       // Store tokens
       localStorage.setItem('authToken', token);
@@ -107,9 +120,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       setUser(userData);
       setRequiresProfileSetup(needsSetup);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      throw error;
+      throw new Error(error.message || 'Failed to login');
     }
   };
 
@@ -166,6 +179,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   return (
     <AuthContext.Provider value={{
       user,
+      currentUser: user,
+      isAuthenticated: !!user,
+      isLoading: loading,
       login,
       register,
       logout,

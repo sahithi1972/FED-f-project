@@ -2,7 +2,10 @@
 /// <reference types="@types/node" />
 
 interface ImportMetaEnv {
-  readonly VITE_APP_TITLE: string
+  readonly VITE_API_URL: string
+  readonly VITE_EDAMAM_APP_ID: string
+  readonly VITE_EDAMAM_APP_KEY: string
+  readonly VITE_OPENWEATHER_API_KEY: string
   // more env variables...
 }
 

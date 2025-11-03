@@ -1,0 +1,1054 @@
+import React, { useState, useEffect } from 'react';import React, { useState, useEffect } from 'react';import React, { useState, useEffect } from 'react';
+
+import { useNavigate } from 'react-router-dom';
+
+import { Search, Sun } from 'lucide-react';import { useNavigate } from 'react-router-dom';import { useNavigate } from 'react-router-dom';
+
+import { RecipeCard } from '../components/RecipeCard';
+
+import { Button } from '../components/ui/button';import { Search, Sun } from 'lucide-react';import { Search, Sun } from 'lucide-react';
+
+import { Input } from '../components/ui/input';
+
+import { Badge } from '../components/ui/badge';import { RecipeCard } from '../components/RecipeCard';import { RecipeCard } from '../components/RecipeCard';
+
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+
+import { WeatherService, WeatherData } from '../services/weatherService';import { Button } from '../components/ui/button';import { Button } from '../components/ui/button';
+
+import { RecipeSearchFilter, SearchFilters } from '../components/RecipeSearchFilter';
+
+import { RecipeDetailModal } from '../components/RecipeDetailModal';import { Input } from '../components/ui/input';import { Input } from '../components/ui/input';
+
+import { VoiceInput } from '../components/VoiceInput';
+
+import { Recipe } from '@/types/recipe';import { Badge } from '../components/ui/badge';import { Badge } from '../components/ui/badge';
+
+import { dummyRecipes } from '../data/dummy-recipes';
+
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+
+// Filter tabs with categories
+
+const filterTabs = [import { WeatherService, WeatherData } from '../services/weatherService';import { WeatherService, WeatherData } from '../services/weatherService';
+
+  { id: 'most-relevant', label: '🎯 Most Relevant' },
+
+  { id: 'trending', label: '📈 Trending Now' },import { RecipeSearchFilter, SearchFilters } from '../components/RecipeSearchFilter';import { RecipeSearchFilter, SearchFilters } from '../components/RecipeSearchFilter';
+
+  { id: 'quick', label: '⚡ Quick & Easy' },
+
+  { id: 'one-pot', label: '🍲 One-Pot Meals' },import { RecipeDetailModal } from '../components/RecipeDetailModal';import { RecipeDetailModal } from '../components/RecipeDetailModal';
+
+  { id: 'healthy', label: '🥗 Healthy Choices' },
+
+  { id: 'budget', label: '💰 Budget Friendly' },import { VoiceInput } from '../components/VoiceInput';import { VoiceInput } from '../components/VoiceInput';
+
+  { id: 'comfort', label: '🤗 Comfort Food' },
+
+  { id: 'seasonal', label: '🌞 Seasonal Picks' }import { Recipe } from '@/types/recipe';import { Recipe } from '@/types/recipe';
+
+];
+
+import { dummyRecipes } from '../data/dummy-recipes';import { dummyRecipes } from '../data/dummy-recipes';
+
+const Recipes = () => {
+
+  const navigate = useNavigate();
+
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+
+  const [weather, setWeather] = useState<WeatherData | null>(null);// Filter tabs with categories// Filter tabs with categories
+
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+
+  const [weatherSuggestions, setWeatherSuggestions] = useState<Recipe[]>([]);const filterTabs = [const filterTabs = [
+
+  const [searchInput, setSearchInput] = useState('');
+
+  const [selectedTag, setSelectedTag] = useState<string>('most-relevant');  { id: 'most-relevant', label: '🎯 Most Relevant' },  { id: 'most-relevant', label: '🎯 Most Relevant' },
+
+  const [showFilter, setShowFilter] = useState(false);
+
+  const [showRecipeDetail, setShowRecipeDetail] = useState(false);  { id: 'trending', label: '📈 Trending Now' },  { id: 'trending', label: '📈 Trending Now' },
+
+
+
+  const [filters, setFilters] = useState<SearchFilters>({  { id: 'quick', label: '⚡ Quick & Easy' },  { id: 'quick', label: '⚡ Quick & Easy' },
+
+    ingredients: [],
+
+    dietary: [],  { id: 'one-pot', label: '🍲 One-Pot Meals' },  { id: 'one-pot', label: '🍲 One-Pot Meals' },
+
+    cuisine: [],
+
+    healthRestrictions: [],  { id: 'healthy', label: '🥗 Healthy Choices' },  { id: 'healthy', label: '🥗 Healthy Choices' },
+
+    cookingTime: 60,
+
+    servings: 4,  { id: 'budget', label: '💰 Budget Friendly' },  { id: 'budget', label: '💰 Budget Friendly' },
+
+    mealType: '',
+
+    difficulty: 'medium'  { id: 'comfort', label: '🤗 Comfort Food' },  { id: 'comfort', label: '🤗 Comfort Food' },
+
+  });
+
+  { id: 'seasonal', label: '🌞 Seasonal Picks' }  { id: 'seasonal', label: '🌞 Seasonal Picks' }
+
+  // Filter recipes based on search criteria
+
+  const getFilteredRecipes = () => {];];
+
+    let filtered = [...dummyRecipes];
+
+
+
+    // Apply tag filters
+
+    if (selectedTag !== 'most-relevant') {const Recipes = () => {const Recipes = () => {
+
+      switch (selectedTag) {
+
+        case 'trending':  const navigate = useNavigate();  const navigate = useNavigate();
+
+          filtered = filtered.filter(recipe => recipe.trending);
+
+          break;  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+
+        case 'quick':
+
+          filtered = filtered.filter(recipe => recipe.cookingTime <= 30);  const [weather, setWeather] = useState<WeatherData | null>(null);  const [weather, setWeather] = useState<WeatherData | null>(null);
+
+          break;
+
+        case 'one-pot':  const [recipes, setRecipes] = useState<Recipe[]>([]);  const [recipes, setRecipes] = useState<Recipe[]>([]);
+
+          filtered = filtered.filter(recipe => recipe.onePot);
+
+          break;  const [weatherSuggestions, setWeatherSuggestions] = useState<Recipe[]>([]);  const [weatherSuggestions, setWeatherSuggestions] = useState<Recipe[]>([]);
+
+        case 'healthy':
+
+          filtered = filtered.filter(recipe => recipe.tags.includes('Healthy'));  const [searchInput, setSearchInput] = useState('');  const [searchInput, setSearchInput] = useState('');
+
+          break;
+
+        case 'budget':  const [selectedTag, setSelectedTag] = useState<string>('most-relevant');  const [selectedTag, setSelectedTag] = useState<string>('most-relevant');
+
+          filtered = filtered.filter(recipe => recipe.tags.includes('Budget'));
+
+          break;  const [showFilter, setShowFilter] = useState(false);  const [showFilter, setShowFilter] = useState(false);
+
+        case 'comfort':
+
+          filtered = filtered.filter(recipe => recipe.tags.includes('Comfort'));  const [showRecipeDetail, setShowRecipeDetail] = useState(false);  const [showRecipeDetail, setShowRecipeDetail] = useState(false);
+
+          break;
+
+        case 'seasonal':
+
+          filtered = filtered.filter(recipe => recipe.seasonal);
+
+          break;  const [filters, setFilters] = useState<SearchFilters>({  const [filters, setFilters] = useState<SearchFilters>({
+
+      }
+
+    }    ingredients: [],    ingredients: [],
+
+
+
+    // Apply text search if provided    dietary: [],    dietary: [],
+
+    if (searchInput.trim()) {
+
+      const searchTerms = searchInput.toLowerCase().split(/\s+/);    cuisine: [],    cuisine: [],
+
+      filtered = filtered.filter(recipe => {
+
+        const searchableText = `${recipe.title} ${recipe.description} ${recipe.ingredients.join(' ')}`.toLowerCase();    healthRestrictions: [],    healthRestrictions: [],
+
+        return searchTerms.every(term => searchableText.includes(term));
+
+      });    cookingTime: 60,    cookingTime: 60,
+
+    }
+
+    servings: 4,    servings: 4,
+
+    // Apply ingredient filters
+
+    if (filters.ingredients.length > 0) {    mealType: '',    mealType: '',
+
+      filtered = filtered.filter(recipe => 
+
+        filters.ingredients.every(ingredient =>    difficulty: 'medium'    difficulty: 'medium'
+
+          recipe.ingredients.some(recipeIng => 
+
+            recipeIng.toLowerCase().includes(ingredient.toLowerCase())  });  });
+
+          )
+
+        )
+
+      );
+
+    }  // Filter recipes based on search criteria  // Filter recipes based on search criteria
+
+
+
+    return filtered.slice(0, 30); // Return up to 30 recipes  const getFilteredRecipes = () => {  const getFilteredRecipes = () => {
+
+  };
+
+    let filtered = [...dummyRecipes];    let filtered = [...dummyRecipes];
+
+  // Update recipes when filters change
+
+  useEffect(() => {
+
+    setRecipes(getFilteredRecipes());
+
+  }, [selectedTag, searchInput, filters.ingredients]);    // Apply tag filters    // Apply tag filters
+
+
+
+  // Load weather and initial recipes    if (selectedTag !== 'most-relevant') {    if (selectedTag !== 'most-relevant') {
+
+  useEffect(() => {
+
+    const loadWeather = async () => {      switch (selectedTag) {      switch (selectedTag) {
+
+      try {
+
+        const weatherData = await WeatherService.getCurrentWeather();        case 'trending':        case 'trending':
+
+        setWeather(weatherData);
+
+          filtered = filtered.filter(recipe => recipe.trending);          filtered = filtered.filter(recipe => recipe.trending);
+
+        // Set weather-appropriate recipes
+
+        const weatherBasedRecipes = dummyRecipes.filter(recipe => {          break;          break;
+
+          if (weatherData.temperature > 25) {
+
+            return recipe.tags.includes('Cold') || recipe.tags.includes('Fresh');        case 'quick':        case 'quick':
+
+          }
+
+          if (weatherData.temperature < 15) {          filtered = filtered.filter(recipe => recipe.cookingTime <= 30);          filtered = filtered.filter(recipe => recipe.cookingTime <= 30);
+
+            return recipe.tags.includes('Hot') || recipe.tags.includes('Comfort');
+
+          }          break;          break;
+
+          return recipe.seasonal;
+
+        }).slice(0, 5);        case 'one-pot':        case 'one-pot':
+
+
+
+        setWeatherSuggestions(weatherBasedRecipes);          filtered = filtered.filter(recipe => recipe.onePot);          filtered = filtered.filter(recipe => recipe.onePot);
+
+      } catch (error) {
+
+        console.error('Failed to load weather:', error);          break;          break;
+
+      }
+
+    };        case 'healthy':        case 'healthy':
+
+
+
+    loadWeather();          filtered = filtered.filter(recipe => recipe.tags.includes('Healthy'));          filtered = filtered.filter(recipe => recipe.tags.includes('Healthy'));
+
+    setRecipes(getFilteredRecipes());
+
+  }, []);          break;          break;
+
+
+
+  const handleSearch = (searchFilters: SearchFilters) => {        case 'budget':        case 'budget':
+
+    setFilters(searchFilters);
+
+  };          filtered = filtered.filter(recipe => recipe.tags.includes('Budget'));          filtered = filtered.filter(recipe => recipe.tags.includes('Budget'));
+
+
+
+  const handleVoiceTranscript = (transcript: string) => {          break;          break;
+
+    setSearchInput(transcript.trim());
+
+  };        case 'comfort':        case 'comfort':
+
+
+
+  return (          filtered = filtered.filter(recipe => recipe.tags.includes('Comfort'));          filtered = filtered.filter(recipe => recipe.tags.includes('Comfort'));
+
+    <div className="min-h-screen bg-background">
+
+      <div className="container mx-auto px-4 py-8">          break;          break;
+
+        {/* Header */}
+
+        <div className="mb-8">        case 'seasonal':        case 'seasonal':
+
+          <h1 className="text-4xl font-bold mb-4">Discover Recipes</h1>
+
+          <p className="text-gray-500">Find perfect recipes based on your ingredients and preferences</p>          filtered = filtered.filter(recipe => recipe.seasonal);          filtered = filtered.filter(recipe => recipe.seasonal);
+
+        </div>
+
+          break;          break;
+
+        {/* Filter Tags */}
+
+        <div className="flex gap-2 mb-6">      }      }
+
+          {filterTabs.map((tab) => (
+
+            <Badge    }    }
+
+              key={tab.id}
+
+              variant={selectedTag === tab.id ? 'default' : 'outline'}
+
+              className="cursor-pointer"
+
+              onClick={() => setSelectedTag(tab.id)}    // Apply text search if provided    // Apply text search if provided
+
+            >
+
+              {tab.label}    if (searchInput.trim()) {    if (searchInput.trim()) {
+
+            </Badge>
+
+          ))}      const searchTerms = searchInput.toLowerCase().split(/\s+/);      const searchTerms = searchInput.toLowerCase().split(/\s+/);
+
+        </div>
+
+      filtered = filtered.filter(recipe => {      filtered = filtered.filter(recipe => {
+
+        {/* Search Bar */}
+
+        <div className="flex items-center gap-4 mb-8">        const searchableText = `${recipe.title} ${recipe.description} ${recipe.ingredients.join(' ')}`.toLowerCase();        const searchableText = `${recipe.title} ${recipe.description} ${recipe.ingredients.join(' ')}`.toLowerCase();
+
+          <div className="flex-1">
+
+            <Input        return searchTerms.every(term => searchableText.includes(term));        return searchTerms.every(term => searchableText.includes(term));
+
+              type="text"
+
+              placeholder="Search recipes or ingredients..."      });      });
+
+              value={searchInput}
+
+              onChange={(e) => setSearchInput(e.target.value)}    }    }
+
+              className="w-full"
+
+            />
+
+          </div>
+
+          <VoiceInput onTranscript={handleVoiceTranscript} />    // Apply ingredient filters    // Apply ingredient filters
+
+          <Button onClick={() => setShowFilter(true)}>
+
+            Advanced Filters    if (filters.ingredients.length > 0) {    if (filters.ingredients.length > 0) {
+
+          </Button>
+
+        </div>      filtered = filtered.filter(recipe =>       filtered = filtered.filter(recipe => 
+
+
+
+        {/* Weather Card */}        filters.ingredients.every(ingredient =>        filters.ingredients.every(ingredient =>
+
+        {weather && weatherSuggestions.length > 0 && (
+
+          <Card className="mb-8">          recipe.ingredients.some(recipeIng =>           recipe.ingredients.some(recipeIng => 
+
+            <CardHeader>
+
+              <CardTitle>            recipeIng.toLowerCase().includes(ingredient.toLowerCase())            recipeIng.toLowerCase().includes(ingredient.toLowerCase())
+
+                <Sun className="inline-block mr-2" />
+
+                Weather-based Suggestions ({weather.temperature}°C, {weather.condition})          )          )
+
+              </CardTitle>
+
+            </CardHeader>        )        )
+
+            <CardContent>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">      );      );
+
+                {weatherSuggestions.map((recipe) => (
+
+                  <RecipeCard key={recipe.id} recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />    }    }
+
+                ))}
+
+              </div>
+
+            </CardContent>
+
+          </Card>    return filtered.slice(0, 30); // Return up to 30 recipes    return filtered.slice(0, 30); // Return up to 30 recipes
+
+        )}
+
+  };  };
+
+        {/* Recipe Grid */}
+
+        <div>
+
+          <h2 className="text-2xl font-bold mb-6">
+
+            {selectedTag === 'most-relevant' ? 'All Recipes' : `${filterTabs.find(tab => tab.id === selectedTag)?.label} Recipes`}  // Update recipes when filters change  // Load weather and initial recipes
+
+          </h2>
+
+          {recipes.length > 0 ? (  useEffect(() => {  useEffect(() => {
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+              {recipes.map((recipe) => (    setRecipes(getFilteredRecipes());    const loadWeather = async () => {
+
+                <RecipeCard key={recipe.id} recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />
+
+              ))}  }, [selectedTag, searchInput, filters.ingredients]);      try {
+
+            </div>
+
+          ) : (        const weatherData = await WeatherService.getCurrentWeather();
+
+            <div className="text-center py-12">
+
+              <p className="text-gray-500 mb-4">No recipes found. Try adjusting your filters or search terms.</p>  // Load weather and initial recipes        setWeather(weatherData);
+
+              <Button onClick={() => {
+
+                setSelectedTag('most-relevant');  useEffect(() => {        const suggestions = WeatherService.getWeatherBasedRecipes(weatherData);
+
+                setSearchInput('');
+
+                setFilters({    const loadWeather = async () => {        setWeatherSuggestions(suggestions);
+
+                  ingredients: [],
+
+                  dietary: [],      try {      } catch (error) {
+
+                  cuisine: [],
+
+                  healthRestrictions: [],        const weatherData = await WeatherService.getCurrentWeather();        console.error('Failed to load weather:', error);
+
+                  cookingTime: 60,
+
+                  servings: 4,        setWeather(weatherData);      }
+
+                  mealType: '',
+
+                  difficulty: 'medium'    };
+
+                });
+
+              }}>        // Set weather-appropriate recipes    loadWeather();
+
+                Reset Filters
+
+              </Button>        const weatherBasedRecipes = dummyRecipes.filter(recipe => {  }, []);
+
+            </div>
+
+          )}          if (weatherData.temperature > 25) {
+
+        </div>
+
+            return recipe.tags.includes('Cold') || recipe.tags.includes('Fresh');  const handleSearch = async (searchFilters: SearchFilters) => {
+
+        {/* Modals */}
+
+        <RecipeSearchFilter          }    setFilters(prev => ({
+
+          open={showFilter}
+
+          onOpenChange={setShowFilter}          if (weatherData.temperature < 15) {      ...prev,
+
+          onSearch={handleSearch}
+
+        />            return recipe.tags.includes('Hot') || recipe.tags.includes('Comfort');      ingredients: searchFilters.ingredients || [],
+
+        {selectedRecipe && (
+
+          <RecipeDetailModal          }      dietary: searchFilters.dietary || [],
+
+            recipe={selectedRecipe}
+
+            open={!!selectedRecipe}          return recipe.seasonal;      cuisine: searchFilters.cuisine || [],
+
+            onOpenChange={(open) => !open && setSelectedRecipe(null)}
+
+          />        }).slice(0, 5);      healthRestrictions: searchFilters.healthRestrictions || [],
+
+        )}
+
+      </div>      cookingTime: searchFilters.cookingTime || 0,
+
+    </div>
+
+  );        setWeatherSuggestions(weatherBasedRecipes);      mealType: searchFilters.mealType || '',
+
+};
+
+      } catch (error) {      difficulty: searchFilters.difficulty || 'medium'
+
+export default Recipes;
+        console.error('Failed to load weather:', error);    }));
+
+      }    
+
+    };    await loadRecipes(searchFilters);
+
+  };
+
+    loadWeather();
+
+    setRecipes(getFilteredRecipes());  const handleVoiceTranscript = (transcript: string) => {
+
+  }, []);    // Parse voice input for ingredients, removing extra spaces
+
+    const ingredients = transcript
+
+  const handleSearch = (searchFilters: SearchFilters) => {      .toLowerCase()
+
+    setFilters(searchFilters);      .trim()
+
+  };      .split(/\s*(?:and|with|\+)\s*|\s*,\s*|\s+/)
+
+      .map(ing => ing.trim())
+
+  const handleVoiceTranscript = (transcript: string) => {      .filter(ing => ing.length > 2);
+
+    setSearchInput(transcript.trim());    
+
+  };    if (ingredients.length > 0) {
+
+      setFilters(prev => ({
+
+  return (        ...prev,
+
+    <div className="min-h-screen bg-background">        ingredients: [...prev.ingredients, ...ingredients]
+
+      <div className="container mx-auto px-4 py-8">      }));
+
+        {/* Header */}      
+
+        <div className="mb-8">      // Auto-search with voice ingredients
+
+          <h1 className="text-4xl font-bold mb-4">Discover Recipes</h1>      handleSearch({
+
+          <p className="text-gray-500">Find perfect recipes based on your ingredients and preferences</p>        ingredients: [...filters.ingredients, ...ingredients],
+
+        </div>        dietary: filters.dietary,
+
+        cuisine: filters.cuisine,
+
+        {/* Filter Tags */}        healthRestrictions: filters.healthRestrictions,
+
+        <div className="flex gap-2 mb-6">        cookingTime: filters.cookingTime,
+
+          {filterTabs.map((tab) => (        servings: filters.servings,
+
+            <Badge        mealType: filters.mealType,
+
+              key={tab.id}        difficulty: filters.difficulty
+
+              variant={selectedTag === tab.id ? 'default' : 'outline'}      });
+
+              className="cursor-pointer"    }
+
+              onClick={() => setSelectedTag(tab.id)}  };
+
+            >
+
+              {tab.label}    // Update recipes when filters change
+
+            </Badge>  useEffect(() => {
+
+          ))}    setRecipes(getFilteredRecipes());
+
+        </div>  }, [selectedTag, searchInput, filters.ingredients]);
+
+
+
+        {/* Search Bar */}  // Load weather and initial recipes
+
+        <div className="flex items-center gap-4 mb-8">  useEffect(() => {
+
+          <div className="flex-1">    const loadWeather = async () => {
+
+            <Input      try {
+
+              type="text"        const weatherData = await WeatherService.getCurrentWeather();
+
+              placeholder="Search recipes or ingredients..."        setWeather(weatherData);
+
+              value={searchInput}
+
+              onChange={(e) => setSearchInput(e.target.value)}        // Set weather-appropriate recipes
+
+              className="w-full"        const weatherBasedRecipes = dummyRecipes.filter(recipe => {
+
+            />          if (weatherData.temperature > 25) {
+
+          </div>            return recipe.tags.includes('Cold') || recipe.tags.includes('Fresh');
+
+          <VoiceInput onTranscript={handleVoiceTranscript} />          }
+
+          <Button onClick={() => setShowFilter(true)}>          if (weatherData.temperature < 15) {
+
+            Advanced Filters            return recipe.tags.includes('Hot') || recipe.tags.includes('Comfort');
+
+          </Button>          }
+
+        </div>          return recipe.seasonal;
+
+        }).slice(0, 5);
+
+        {/* Weather Card */}
+
+        {weather && weatherSuggestions.length > 0 && (        setWeatherSuggestions(weatherBasedRecipes);
+
+          <Card className="mb-8">      } catch (error) {
+
+            <CardHeader>        console.error('Failed to load weather:', error);
+
+              <CardTitle>      }
+
+                <Sun className="inline-block mr-2" />    };
+
+                Weather-based Suggestions ({weather.temperature}°C, {weather.condition})
+
+              </CardTitle>    loadWeather();
+
+            </CardHeader>    setRecipes(getFilteredRecipes());
+
+            <CardContent>  }, []);
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+
+                {weatherSuggestions.map((recipe) => (  const handleSearch = (searchFilters: SearchFilters) => {
+
+                  <RecipeCard key={recipe.id} recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />    setFilters(searchFilters);
+
+                ))}  };
+
+              </div>
+
+            </CardContent>  const handleVoiceTranscript = (transcript: string) => {
+
+          </Card>    setSearchInput(transcript.trim());
+
+        )}  };
+
+
+
+        {/* Recipe Grid */}  return (
+
+        <div>    <div className="min-h-screen bg-gradient-to-b from-black via-background to-background/90">
+
+          <h2 className="text-2xl font-bold mb-6">      <div className="max-w-7xl mx-auto px-4 py-6">
+
+            {selectedTag === 'most-relevant' ? 'All Recipes' : `${filterTabs.find(tab => tab.id === selectedTag)?.label} Recipes`}        {/* Header Section */}
+
+          </h2>        <div className="mb-8">
+
+          {recipes.length > 0 ? (          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">            <div>
+
+              {recipes.map((recipe) => (              <h1 className="text-4xl font-bold text-emerald-50">
+
+                <RecipeCard key={recipe.id} recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />                Discover Recipes
+
+              ))}              </h1>
+
+            </div>              <p className="text-emerald-300/80 text-lg mt-2">
+
+          ) : (                Find perfect recipes based on your ingredients and preferences
+
+            <div className="text-center py-12">              </p>
+
+              <p className="text-gray-500 mb-4">No recipes found. Try adjusting your filters or search terms.</p>            </div>
+
+              <Button onClick={() => {            <div className="flex gap-3">
+
+                setSelectedTag('most-relevant');              <Button
+
+                setSearchInput('');                onClick={() => setShowFilter(true)}
+
+                setFilters({                className="bg-emerald-500 hover:bg-emerald-600 text-white"
+
+                  ingredients: [],              >
+
+                  dietary: [],                🎯 Refine Search
+
+                  cuisine: [],              </Button>
+
+                  healthRestrictions: [],              <Button
+
+                  cookingTime: 60,                onClick={() => navigate('/')}
+
+                  servings: 4,                variant="outline"
+
+                  mealType: '',                className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+
+                  difficulty: 'medium'              >
+
+                });                ← Back Home
+
+              }}>              </Button>
+
+                Reset Filters            </div>
+
+              </Button>          </div>
+
+            </div>
+
+          )}          {/* Quick Search Examples */}
+
+        </div>          <div className="flex flex-wrap gap-2 mt-4">
+
+            {[
+
+        {/* Modals */}              "tomatoes onions chicken",
+
+        <RecipeSearchFilter              "vegetarian pasta recipe",
+
+          open={showFilter}              "quick dinner with rice"
+
+          onOpenChange={setShowFilter}            ].map((example) => (
+
+          onSearch={handleSearch}              <Button
+
+        />                key={example}
+
+        {selectedRecipe && (                variant="ghost"
+
+          <RecipeDetailModal                className="text-emerald-300/70 hover:text-emerald-300 hover:bg-emerald-500/10"
+
+            recipe={selectedRecipe}                onClick={() => {
+
+            open={!!selectedRecipe}                  setFilters(prev => ({
+
+            onOpenChange={(open) => !open && setSelectedRecipe(null)}                    ...prev,
+
+          />                    ingredients: example.split(' ')
+
+        )}                  }));
+
+      </div>                  handleSearch({
+
+    </div>                    ...filters,
+
+  );                    ingredients: example.split(' ')
+
+};                  });
+
+                }}
+
+export default Recipes;              >
+                "{example}"
+              </Button>
+            ))}
+          </div>
+          
+          {/* Filter Tabs */}
+          <div className="mt-6 flex gap-2 overflow-x-auto pb-2 no-scrollbar [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {filterTabs.map((tab) => (
+              <Button
+                key={tab.id}
+                onClick={() => setActiveFilter(tab.id)}
+                variant={activeFilter === tab.id ? "secondary" : "ghost"}
+                className={`whitespace-nowrap ${
+                  activeFilter === tab.id 
+                    ? "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30" 
+                    : "text-emerald-300/70 hover:text-emerald-300 hover:bg-emerald-500/10"
+                }`}
+              >
+                {tab.icon} {tab.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Recipe Display Section */}
+        {displayedRecipes.length === 0 ? (
+          <Card className="p-8 text-center">
+            <h3 className="text-xl font-semibold mb-2">No recipes found</h3>
+            <p className="text-gray-500 mb-4">Try adjusting your search criteria or add more ingredients</p>
+            {suggestedRecipes.length > 0 && (
+              <div>
+                <h4 className="text-lg font-semibold mb-4 text-emerald-600">You May Also Like</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {suggestedRecipes.slice(0, 3).map((recipe) => (
+                    <RecipeCard
+                      key={recipe.uri}
+                      recipe={{
+                        id: recipe.uri,
+                        title: recipe.label,
+                        description: recipe.cuisineType?.join(', ') || '',
+                        imageUrl: recipe.image,
+                        cookingTime: recipe.totalTime,
+                        servings: recipe.yield,
+                        difficulty: (recipe.difficulty || 'medium') as 'easy' | 'medium' | 'hard',
+                        rating: recipe.matchScore || 0,
+                        cuisine: recipe.cuisineType?.[0] || 'Other',
+                        dietary: recipe.dietLabels,
+                        ingredients: recipe.ingredients?.map(i => i.text) || [],
+                        trending: false,
+                        isFavorite: false,
+                        tags: recipe.dietLabels
+                      }}
+                      onClick={() => handleViewRecipe(recipe)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* Weather & Quick Search Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Weather Card */}
+          {weather && (
+            <Card className="lg:col-span-1 bg-gradient-to-br from-blue-600 to-blue-700 border-0">
+              <div className="p-6 text-white">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-2xl font-bold">Current Weather</h3>
+                    <p className="text-blue-100">{weather.location}</p>
+                  </div>
+                  <div className="p-3 bg-blue-500/30 rounded-full">
+                    <span className="text-2xl">{weather.icon}</span>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-5xl font-bold mb-2">{weather.temperature}°C</p>
+                  <p className="text-xl text-blue-100">{weather.condition}</p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Quick Search & Perfect for Weather */}
+          <Card className="lg:col-span-2 bg-black/40 backdrop-blur-sm border border-emerald-500/20">
+            <div className="p-6 space-y-6">
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Search className="h-5 w-5 text-emerald-500/50" />
+                  <h3 className="text-xl font-bold text-emerald-50">Quick Search</h3>
+                </div>
+                
+                {/* Voice Input */}
+                <VoiceInput
+                  onTranscript={handleVoiceTranscript}
+                  placeholder="Say ingredients like 'tomatoes chicken rice'..."
+                  className="mb-4"
+                />
+                
+                <div className="flex gap-2">
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleQuickSearch()}
+                    placeholder="Or type ingredients..."
+                    className="flex-1 h-12 bg-black/40 border-emerald-500/20 focus:border-emerald-500 text-emerald-50 placeholder:text-emerald-500/50"
+                  />
+                  <Button 
+                    onClick={handleQuickSearch}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                  >
+                    Search
+                  </Button>
+                </div>
+              </div>
+
+              {/* Weather Suggestions */}
+              <div>
+                <h3 className="text-xl font-bold text-emerald-50 mb-4">🌤️ Perfect for this Weather</h3>
+                <div className="flex flex-wrap gap-2">
+                  {weatherSuggestions.map((suggestion, index) => (
+                    <Badge 
+                      key={index}
+                      className="bg-black/40 text-emerald-300 border-emerald-500/20 hover:bg-emerald-500/10 cursor-pointer"
+                      onClick={() => {
+                        setSearchQuery(suggestion);
+                        handleQuickSearch();
+                      }}
+                    >
+                      {suggestion}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex flex-wrap gap-4 mb-8">
+          {[
+            { id: 'most-relevant', label: '🎯 Most Relevant', icon: '👋' },
+            { id: 'trending', label: '📈 Trending', icon: '🚀' },
+            { id: 'quick', label: '⚡ Quick & Easy', icon: '⏱️' },
+            { id: 'one-pot', label: '🍲 One-Pot Meals', icon: '❤️' }
+          ].map(filter => (
+            <Button
+              key={filter.id}
+              onClick={() => setActiveFilter(filter.id)}
+              variant="ghost"
+              className={
+                activeFilter === filter.id
+                  ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
+                  : 'text-emerald-300 hover:bg-emerald-500/10 hover:text-emerald-400'
+              }
+            >
+              {filter.label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Recipe Grid */}
+        <div className="mt-8 space-y-12">
+          {loading ? (
+            // Loading skeletons
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Card key={i} className="bg-black/40 border-emerald-500/20 animate-pulse">
+                  <div className="h-48 bg-emerald-500/10 rounded-t-lg"></div>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="h-6 bg-emerald-500/10 rounded w-3/4"></div>
+                    <div className="h-4 bg-emerald-500/10 rounded"></div>
+                    <div className="h-4 bg-emerald-500/10 rounded w-5/6"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Perfect Matches */}
+              {recipes.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-emerald-50 mb-6">
+                    🔥 Perfect Matches ({recipes.length})
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {recipes.slice(0, 12).map((recipe) => (
+                      <RecipeCard 
+                        key={recipe.uri}
+                        recipe={{
+                          id: recipe.uri,
+                          title: recipe.label,
+                          imageUrl: recipe.image,
+                          description: recipe.cuisineType?.join(', ') || '',
+                          cookingTime: recipe.totalTime,
+                          servings: recipe.yield,
+                          difficulty: (recipe.difficulty || 'medium') as 'easy' | 'medium' | 'hard',
+                          rating: recipe.matchScore || 0,
+                          cuisine: recipe.cuisineType?.[0] || 'Other',
+                          dietary: recipe.dietLabels,
+                          ingredients: recipe.ingredients?.map(i => i.text) || [],
+                          trending: false,
+                          isFavorite: false,
+                          tags: recipe.dietLabels
+                        }}
+                        onClick={() => handleViewRecipe(recipe)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Suggested Recipes */}
+              {suggestedRecipes.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-emerald-50 mb-6">
+                    💡 You Might Also Like ({suggestedRecipes.length})
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {suggestedRecipes.slice(0, 8).map((recipe) => (
+                      <RecipeCard 
+                        key={recipe.uri}
+                        recipe={{
+                          id: recipe.uri,
+                          title: recipe.label,
+                          imageUrl: recipe.image,
+                          description: recipe.cuisineType?.join(', ') || '',
+                          cookingTime: recipe.totalTime,
+                          servings: recipe.yield,
+                          difficulty: (recipe.difficulty || 'medium') as 'easy' | 'medium' | 'hard',
+                          rating: recipe.matchScore || 0,
+                          cuisine: recipe.cuisineType?.[0] || 'Other',
+                          dietary: recipe.dietLabels,
+                          ingredients: recipe.ingredients?.map(i => i.text) || [],
+                          trending: false,
+                          isFavorite: false,
+                          tags: recipe.dietLabels
+                        }}
+                        onClick={() => handleViewRecipe(recipe)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* No Results */}
+              {recipes.length === 0 && suggestedRecipes.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">🍳</div>
+                  <h2 className="text-2xl font-bold text-emerald-50 mb-4">No recipes found</h2>
+                  <p className="text-emerald-300/80 mb-6">
+                    Try adjusting your search criteria or add more ingredients
+                  </p>
+                  <Button
+                    onClick={() => setShowFilter(true)}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                  >
+                    Refine Search
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Search Filter Modal */}
+        <RecipeSearchFilter
+          open={showFilter}
+          onOpenChange={setShowFilter}
+          initialIngredients={filters.ingredients}
+          onSearch={handleSearch}
+        />
+
+        {/* Recipe Detail Modal */}
+        <RecipeDetailModal
+          recipe={selectedRecipe}
+          open={showRecipeDetail}
+          onOpenChange={setShowRecipeDetail}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Export component
+export default Recipes;
