@@ -5,6 +5,7 @@ import { Badge } from './ui/badge';
 import { Clock, Users, ChefHat, Star, Timer, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SmartRecipe } from '../services/edamamService';
+import { getRecipeImage } from '@/lib/utils';
 
 interface RecipeDetailModalProps {
   recipe: SmartRecipe | null;
@@ -86,7 +87,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="relative rounded-lg overflow-hidden">
                 <img
-                  src={recipe.image || '/placeholder.svg'}
+                  src={getRecipeImage(recipe)}
                   alt={recipe.label}
                   className="w-full h-64 lg:h-80 object-cover rounded-lg shadow-lg"
                   onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}

@@ -12,7 +12,7 @@
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
-import { cn } from "@/lib/utils";
+import { cn, getRecipeImage } from "@/lib/utils";
 import { Heart, Clock, Award, Star } from "lucide-react";
 import React from "react";
 import { motion } from "framer-motion";
@@ -37,7 +37,6 @@ export const RecipeCard = React.memo(function RecipeCard({
   const {
     id,
     title,
-    imageUrl,
     cookingTime,
     difficulty,
     rating,
@@ -45,6 +44,23 @@ export const RecipeCard = React.memo(function RecipeCard({
     dietary,
     isFavorite,
   } = recipe;
+  // resolve image using helper to tolerate imageUrl/image/mainImage
+  const imageSrc = getRecipeImage(recipe);
+  // compute a deterministic local fallback index (1..12) based on title
+  const hash = (s: string) => {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) {
+      h = (h << 5) - h + s.charCodeAt(i);
+      h |= 0;
+    }
+    return Math.abs(h);
+  };
+  const fallbackIndex = ((recipe?.title ? hash(String(recipe.title)) : 0) % 12) + 1;
+  const fallbackImage = `/images/recipes/recipe-${fallbackIndex}.jpg`;
+
+  // If helper returned a placeholder, use the deterministic local fallback.
+  // Otherwise start with the helper result (which may be a remote URL).
+  let resolvedImage = imageSrc === '/placeholder.svg' ? fallbackImage : imageSrc;
 
   return (
     <motion.div
@@ -60,11 +76,21 @@ export const RecipeCard = React.memo(function RecipeCard({
           <div className="relative h-44 md:h-56 overflow-hidden rounded-t-lg bg-gray-800">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
             <img
-              src={imageUrl || "/placeholder.svg"}
+              src={resolvedImage}
               alt={title}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
+              onError={(e) => {
+                const img = e.currentTarget as HTMLImageElement;
+                // Avoid repeating the same fallback loop: if we haven't applied the local fallback yet, do so.
+                if (!img.dataset.fallbackApplied) {
+                  img.dataset.fallbackApplied = '1';
+                  img.src = fallbackImage;
+                  return;
+                }
+                // final fallback -> placeholder
+                img.src = '/placeholder.svg';
+              }}
             />
             <Button
               size="icon"

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -102,7 +102,7 @@ export function UploadRecipeDialog({ open, onClose, initialRecipe, onSave }: Upl
   };
 
   // Populate form when editing an existing recipe
-  React.useEffect(() => {
+  useEffect(() => {
     if (initialRecipe) {
       const r = initialRecipe;
       setFormData({
@@ -170,8 +170,8 @@ export function UploadRecipeDialog({ open, onClose, initialRecipe, onSave }: Upl
         const stored = localStorage.getItem('myRecipes');
         const list = stored ? JSON.parse(stored) : [];
 
-        // If editing an existing recipe (initialRecipe provided), update it
-        const initial = (props as any).initialRecipe;
+  // If editing an existing recipe (initialRecipe provided), update it
+  const initial = initialRecipe;
         if (initial && initial.id) {
           const updated = {
             ...initial,

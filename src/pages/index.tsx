@@ -1,12 +1,13 @@
 
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
+import BuildBanner from "../components/BuildBanner";
 import Features from "../components/Features";
 import HowItWorks from "../components/HowItWorks";
 import About from "../components/About";
 import CTA from "../components/CTA";
 import Footer from "../components/Footer";
-import ChatButton from "../components/ChatButton";
+// ChatButton removed: no chat UI desired on home page
 import IngredientSearch from "../components/IngredientSearch";
 import { useEffect } from "react";
 import { useAuth } from "../contexts/auth-context";
@@ -26,6 +27,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <BuildBanner />
       <main>
         <Hero />
         <IngredientSearch />
@@ -34,8 +36,7 @@ const Index = () => {
         <About />
         <CTA />
       </main>
-      <Footer />
-      <ChatButton />
+  <Footer />
     </div>
   );
 };

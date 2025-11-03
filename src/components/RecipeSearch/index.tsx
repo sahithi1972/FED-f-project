@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Badge } from '../ui/badge';
 import { Search, Clock, ChefHat, Filter, AlertCircle } from 'lucide-react';
 import { Recipe, SearchFilters, SearchState } from './types';
+import { getRecipeImage } from '@/lib/utils';
 import { CUISINES, DIETARY_RESTRICTIONS, DIFFICULTY_LEVELS, SORT_OPTIONS } from './constants';
 
 const RecipeSearch = () => {
@@ -258,7 +259,7 @@ const RecipeSearch = () => {
             <Card key={recipe.id} className="flex flex-col">
               <CardHeader>
                 <div className="aspect-video relative rounded-md overflow-hidden mb-4">
-                  <img src={recipe.imageUrl || '/placeholder.svg'} alt={recipe.title} className="object-cover w-full h-full" onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }} />
+                  <img src={getRecipeImage(recipe)} alt={recipe.title} className="object-cover w-full h-full" onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }} />
                 </div>
                 <CardTitle>{recipe.title}</CardTitle>
                 <CardDescription>{recipe.description}</CardDescription>

@@ -2,7 +2,10 @@ export interface Recipe {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
+  // imageUrl is the canonical remote URL; some older data may use `image` or `mainImage`.
+  imageUrl?: string;
+  image?: string;
+  mainImage?: string;
   cookingTime: number;
   servings?: number;
   difficulty: 'easy' | 'medium' | 'hard';

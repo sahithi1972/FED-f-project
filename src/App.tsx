@@ -5,7 +5,8 @@ import { AnimatePresence } from "framer-motion";
 import { AuthProvider } from "./contexts/auth-context";
 import { AuthModalProvider } from "./contexts/auth-modal-context";
 import { Toaster } from "./components/ui/toaster";
-import { ChatbotWidget } from "./components/ChatbotWidget";
+// Chat placeholder: lightweight hint the chatbot is coming soon
+import ChatPlaceholder from './components/ChatPlaceholder';
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { PageTransition } from "./components/PageTransition";
 import { Spinner } from "./components/ui/spinner";
@@ -191,9 +192,8 @@ const App: React.FC = () => {
           <AuthProvider>
             <AuthModalProvider>
               <AnimatedRoutes />
-              <ChatbotWidget />
               <Toaster />
-              <BackendTest />
+              <ChatPlaceholder />
             </AuthModalProvider>
           </AuthProvider>
         </BrowserRouter>
