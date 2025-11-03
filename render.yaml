@@ -1,0 +1,25 @@
+# Render service manifest (example).
+# This file defines a backend web service and a frontend static site.
+# You still need to set environment variables (DATABASE_URL, JWT_SECRET, CLOUDINARY_*, CLIENT_URL, VITE_API_URL) in the Render dashboard.
+
+services:
+  - type: web
+    name: wastechef-backend
+    env: node
+    plan: free
+    region: oregon
+    root: backend
+    buildCommand: cd backend && npm ci
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/hello
+
+static_sites:
+  - name: wastechef-frontend
+    region: oregon
+    plan: free
+    root: /
+    buildCommand: npm ci && npm run build
+    publishPath: dist
+    env:
+      - key: VITE_API_URL
+        value: ''
