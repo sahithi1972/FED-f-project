@@ -11,6 +11,10 @@ import { ImagePlus, X } from 'lucide-react';
 interface UploadRecipeFormProps {
   open: boolean;
   onClose: () => void;
+  // optional initial data for editing an existing recipe
+  initialRecipe?: any;
+  // optional callback when a recipe is saved/updated
+  onSave?: (recipe: any) => void;
 }
 
 interface RecipeFormData {
@@ -35,7 +39,7 @@ const AVAILABLE_TAGS = [
   "Indian", "Chinese", "Italian", "Mexican"
 ];
 
-export function UploadRecipeDialog({ open, onClose }: UploadRecipeFormProps) {
+export function UploadRecipeDialog({ open, onClose, initialRecipe, onSave }: UploadRecipeFormProps) {
   const [formData, setFormData] = useState<RecipeFormData>({
     title: "",
     ingredients: [],
@@ -97,6 +101,32 @@ export function UploadRecipeDialog({ open, onClose }: UploadRecipeFormProps) {
     }
   };
 
+  // Populate form when editing an existing recipe
+  React.useEffect(() => {
+    if (initialRecipe) {
+      const r = initialRecipe;
+      setFormData({
+        title: r.title || "",
+        ingredients: r.ingredients || [],
+        steps: r.steps && r.steps.length ? r.steps : [""],
+        cookingTime: r.cookingTime || 30,
+        budget: r.budget || "",
+        tags: r.tags || [],
+        image: null,
+      });
+      if (r.image) {
+        setImagePreview(r.image);
+      } else {
+        setImagePreview("");
+      }
+    } else {
+      // reset when opening empty dialog
+      setFormData({ title: "", ingredients: [], steps: [""], cookingTime: 30, budget: "", tags: [], image: null });
+      setImagePreview("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialRecipe, open]);
+
   const handleTagToggle = (tag: string) => {
     setFormData(prev => ({
       ...prev,
@@ -139,6 +169,29 @@ export function UploadRecipeDialog({ open, onClose }: UploadRecipeFormProps) {
 
         const stored = localStorage.getItem('myRecipes');
         const list = stored ? JSON.parse(stored) : [];
+
+        // If editing an existing recipe (initialRecipe provided), update it
+        const initial = (props as any).initialRecipe;
+        if (initial && initial.id) {
+          const updated = {
+            ...initial,
+            title: formData.title,
+            ingredients: formData.ingredients,
+            steps: formData.steps,
+            cookingTime: formData.cookingTime,
+            budget: formData.budget,
+            tags: formData.tags,
+            image: imageData || initial.image,
+            status: isDraft ? 'draft' : initial.status || 'published',
+            updatedAt: new Date().toISOString()
+          };
+          const idx = list.findIndex((r: any) => r.id === initial.id);
+          if (idx !== -1) list[idx] = updated;
+          else list.unshift(updated);
+          localStorage.setItem('myRecipes', JSON.stringify(list));
+          return updated;
+        }
+
         const newRecipe = {
           id: `local-${Date.now()}`,
           title: formData.title,
@@ -159,6 +212,8 @@ export function UploadRecipeDialog({ open, onClose }: UploadRecipeFormProps) {
       };
 
       const saved = await saveRecipe();
+      // call parent callback if provided
+      try { if (onSave) onSave(saved); } catch (e) { /* ignore */ }
       toast({
         title: isDraft ? "✨ Draft Saved" : "🎉 Recipe Published!",
         description: isDraft 

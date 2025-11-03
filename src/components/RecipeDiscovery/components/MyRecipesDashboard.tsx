@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { EnhancedRecipeCard } from "./EnhancedRecipeCard.js";
 import { CreatorStats } from "./CreatorStats";
+import { UploadRecipeDialog } from "./UploadRecipeDialog";
 
 interface Recipe {
   id: string;
@@ -55,6 +56,8 @@ export function MyRecipesDashboard({ userId }: MyRecipesDashboardProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [recipeToDelete, setRecipeToDelete] = useState<string | null>(null);
   const [tagFilter, setTagFilter] = useState<string>("all");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const { toast } = useToast();
 
   // Mock data - replace with actual API call
@@ -104,14 +107,25 @@ export function MyRecipesDashboard({ userId }: MyRecipesDashboardProps) {
   };
 
   const handleEdit = (recipeId: string) => {
-    // TODO: Implement edit functionality
-    console.log("Edit recipe:", recipeId);
+    const r = recipes.find(r => r.id === recipeId) || null;
+    if (r) {
+      setEditingRecipe(r);
+      setEditDialogOpen(true);
+    } else {
+      console.warn('Recipe to edit not found:', recipeId);
+    }
   };
 
   const handleDelete = async (recipeId: string) => {
     try {
       // TODO: Implement actual delete API call
-      setRecipes(recipes.filter(recipe => recipe.id !== recipeId));
+      const newList = recipes.filter(recipe => recipe.id !== recipeId);
+      setRecipes(newList);
+      try {
+        localStorage.setItem('myRecipes', JSON.stringify(newList));
+      } catch (err) {
+        console.warn('Failed to update myRecipes in localStorage', err);
+      }
       toast({
         title: "Recipe deleted",
         description: "Your recipe has been successfully deleted."
@@ -264,6 +278,25 @@ export function MyRecipesDashboard({ userId }: MyRecipesDashboardProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit / Upload dialog (re-use upload dialog for editing) */}
+      <UploadRecipeDialog
+        open={editDialogOpen}
+        onClose={() => { setEditDialogOpen(false); setEditingRecipe(null); }}
+        initialRecipe={editingRecipe}
+        onSave={(updated: any) => {
+          try {
+            const newList = recipes.map(r => r.id === updated.id ? { ...r, ...updated } : r);
+            setRecipes(newList);
+            localStorage.setItem('myRecipes', JSON.stringify(newList));
+            toast({ title: 'Recipe updated', description: 'Your recipe changes were saved.' });
+          } catch (err) {
+            console.warn('Failed to persist updated recipe', err);
+          }
+          setEditDialogOpen(false);
+          setEditingRecipe(null);
+        }}
+      />
     </div>
   );
 }
