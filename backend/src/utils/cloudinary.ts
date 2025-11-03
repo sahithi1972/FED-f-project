@@ -59,9 +59,12 @@ export const uploadToCloudinary = async (filePath: string, folder: string): Prom
       // Move temp file to public folder so it can be served
       fs.renameSync(filePath, destPath);
 
-      const port = process.env.PORT || '5000';
-      const url = `http://localhost:${port}/uploads/public/${encodeURIComponent(filename)}`;
-      return url;
+  const port = process.env.PORT || '5000';
+  // Prefer a configured CLIENT_URL (set this in Render to your frontend URL).
+  // Fall back to localhost when running locally.
+  const clientUrl = process.env.CLIENT_URL || `http://localhost:${port}`;
+  const url = `${clientUrl.replace(/\/$/, '')}/uploads/public/${encodeURIComponent(filename)}`;
+  return url;
     }
 
     const result = await cloudinary.uploader.upload(filePath, {
