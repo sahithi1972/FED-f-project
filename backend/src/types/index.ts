@@ -1,8 +1,13 @@
 import { Request } from 'express';
 import { User, Recipe, RecipeIngredient, RecipeStep, Tag, UserBadge } from '@prisma/client';
+import type { Express } from 'express';
 
 export interface AuthRequest extends Request {
   user?: User;
+  file?: Express.Multer.File;
+  body: any; // You might want to make this more specific based on your needs
+  query: Record<string, string | string[]>;
+  params: Record<string, string>;
 }
 
 export interface ApiResponse<T = any> {
