@@ -32,9 +32,18 @@ function IngredientSearch() {
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [suggestions, setSuggestions] = useState<Ingredient[]>([]);
+  const [searchFocused, setSearchFocused] = useState(false);
   const [activeTab, setActiveTab] = useState<'ingredients' | 'filters'>('ingredients');
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Styles for mobile optimization
+  const containerStyle = "p-4 flex flex-col h-full";
+  const headerStyle = "text-2xl font-bold text-center mb-6 text-green-600";
+  const inputContainerStyle = "relative mb-6";
+  const ingredientCountStyle = "text-lg text-center mb-4 text-green-500";
+  const popularIngredientsStyle = "grid grid-cols-2 gap-3 mt-4";
+  const ingredientButtonStyle = "flex items-center p-4 rounded-full bg-opacity-20 hover:bg-opacity-30 transition-all w-full text-left space-x-3";
 
   const handleFindRecipes = () => {
     if (selectedIngredients.length === 0) {
@@ -84,28 +93,28 @@ function IngredientSearch() {
   };
 
   return (
-    <section id="ingredient-search" className="relative px-4 sm:px-6 lg:px-8 py-12 md:py-20 overflow-hidden bg-gradient-to-b from-background via-background/95 to-background">
+    <section id="ingredient-search" className="relative px-4 py-6 min-h-screen bg-gradient-to-b from-background via-background/95 to-background">
       {/* Animated background elements */}
       <div className="absolute inset-0 w-full h-full">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-3xl animate-blob"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-500/5 dark:bg-amber-500/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute top-0 right-0 w-48 h-48 sm:w-96 sm:h-96 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-3xl animate-blob"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 sm:w-96 sm:h-96 bg-amber-500/5 dark:bg-amber-500/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
       </div>
 
       {/* Main content */}
-      <div className="container mx-auto max-w-5xl relative">
-        <div className="text-center mb-10">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
-            <div className="relative">
+      <div className="container mx-auto max-w-md relative">
+        <div className="text-center mb-6">
+          <div className="flex flex-col items-center justify-center gap-3 mb-3">
+            <div className="relative mb-2">
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-amber-500 rounded-full blur-md opacity-30 animate-pulse"></div>
-              <div className="relative bg-emerald-50 dark:bg-black/40 p-3 rounded-full border border-emerald-500/30 shadow-lg">
-                <Search className="w-12 h-12 text-emerald-600 dark:text-emerald-500" strokeWidth={1.5} />
+              <div className="relative bg-emerald-50 dark:bg-black/40 p-2 rounded-full border border-emerald-500/30 shadow-lg">
+                <Search className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-600 dark:text-emerald-500" strokeWidth={1.5} />
               </div>
             </div>
-            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-center px-4 sm:px-0 text-foreground dark:text-white">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center px-2 text-foreground dark:text-white">
               What ingredients do you have?
             </h2>
           </div>
-          <p className="text-xl text-muted-foreground/80 dark:text-emerald-400/80 mb-8">
+          <p className="text-lg text-muted-foreground/80 dark:text-emerald-400/80 mb-4">
             <span className="text-emerald-500 font-semibold">{selectedIngredients.length}</span>/10 ingredients selected
           </p>
         </div>
@@ -121,7 +130,9 @@ function IngredientSearch() {
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              className="w-full h-16 sm:h-20 px-6 text-lg sm:text-xl rounded-2xl bg-background/80 dark:bg-black/40 backdrop-blur-md border-2 border-emerald-500/20 dark:border-white/10 shadow-xl placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-emerald-500/50 transition-all duration-300"
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+              className="w-full h-12 sm:h-14 px-4 text-base sm:text-lg rounded-xl bg-background/80 dark:bg-black/40 backdrop-blur-md border-2 border-emerald-500/20 dark:border-white/10 shadow-lg placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-emerald-500/50 transition-all duration-300"
             />
           </div>
 
@@ -172,27 +183,27 @@ function IngredientSearch() {
             </div>
           )}
 
-          <div className="mt-12">
-            <h3 className="text-lg font-medium mb-6 text-foreground/70 dark:text-emerald-400/80 text-center">
+          <div className="mt-8">
+            <h3 className="text-lg font-medium mb-4 text-foreground/70 dark:text-emerald-400/80 text-center">
               Popular ingredients:
             </h3>
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {popularIngredients.map((ing) => (
-                <Badge
+                <button
                   key={ing.name}
                   onClick={() => handleIngredientAdd(ing.name)}
-                  className={`group px-5 py-3 my-1 cursor-pointer text-base font-medium border-2 border-transparent hover:border-green-400 
-                    ${selectedIngredients.includes(ing.name) 
-                      ? 'bg-emerald-600 text-white shadow-md' 
-                      : 'bg-amber-100/80 dark:bg-amber-500/20 hover:bg-amber-200/80 dark:hover:bg-amber-500/30'} 
-                    hover:shadow-lg hover:scale-105 transform transition-all duration-300 ease-out`}
+                  className={`flex items-center justify-start space-x-2 px-4 py-3 rounded-xl text-base font-medium w-full
+                    ${selectedIngredients.includes(ing.name)
+                      ? 'bg-emerald-600 text-white shadow-md'
+                      : 'bg-amber-100/80 dark:bg-amber-500/20'} 
+                    hover:shadow-lg active:scale-95 transform transition-all duration-200`}
                 >
-                  <span className="mr-2.5 text-xl transform inline-block transition-transform duration-200 group-hover:scale-110">{ing.icon}</span>
-                  {ing.name}
+                  <span className="text-2xl">{ing.icon}</span>
+                  <span className="text-sm sm:text-base">{ing.name}</span>
                   {selectedIngredients.includes(ing.name) && (
                     <Check className="inline-block ml-2 w-4 h-4" />
                   )}
-                </Badge>
+                </button>
               ))}
             </div>
           </div>
