@@ -18,13 +18,12 @@ import recommendationRoutes from './routes/recommendations';
 
 // Get environment variables
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
-const RENDER_FRONTEND_URL = 'https://zero-waste-chef-frontend.onrender.com';
 
 const app = express();
 
 // Configure CORS
 app.use(cors({
-  origin: [CLIENT_URL, RENDER_FRONTEND_URL],
+  origin: CLIENT_URL,
   credentials: true
 }));
 
