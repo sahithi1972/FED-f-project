@@ -16,6 +16,14 @@ import searchRoutes from './routes/search';
 import uploadRoutes from './routes/upload';
 import recommendationRoutes from './routes/recommendations';
 
+// Root route response type
+interface RootResponse {
+  success: boolean;
+  message: string;
+  version: string;
+  status: string;
+}
+
 // Get environment variables
 const FRONTEND_URL = 'https://zero-waste-chef-frontend.onrender.com';
 
@@ -69,16 +77,26 @@ app.get('/health', (req, res) => {
 // API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
+// Root route
+app.get('/', (req, res) => {
+  const response: RootResponse = {
+    success: true,
+    message: 'Welcome to ZeroWasteChef API',
+    version: '1.0.0',
+    status: 'healthy'
+  };
+  res.json(response);
+});
+
 // API routes
-// Register routes
+// Register all routes under /api/v1
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/recipes', recipeRoutes);
-app.use('/api/recipes', recipeRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/impact', impactRoutes);
-app.use('/api/search', searchRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/impact', impactRoutes);
+app.use('/api/v1/search', searchRoutes);
+app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/v1/recommendations', recommendationRoutes);
 
 // 404 handler
 app.use((req, res) => {
