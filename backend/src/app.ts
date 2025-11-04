@@ -17,15 +17,17 @@ import uploadRoutes from './routes/upload';
 import recommendationRoutes from './routes/recommendations';
 
 // Get environment variables
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
-const PRODUCTION_URL = 'https://zero-waste-chef-frontend.onrender.com';
+const FRONTEND_URL = 'https://zero-waste-chef-frontend.onrender.com';
 
 const app = express();
 
-// Configure CORS for both development and production
+// Configure CORS
 app.use(cors({
-  origin: CLIENT_URL,
-  credentials: true
+  origin: FRONTEND_URL,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  exposedHeaders: ['Set-Cookie']
 }));
 
 // Serve uploaded files (public) for local development if Cloudinary isn't used
@@ -35,13 +37,6 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
-app.use(cors({
-  origin: CLIENT_URL,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
-  exposedHeaders: ['Set-Cookie'],
 }));
 
 // Body parsing middleware
