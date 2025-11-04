@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/auth-context';
 import { Navigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import { ProfileDialog } from '../components/ProfileDialog';
 import { ProfileView } from '../components/ProfileView';
 
@@ -24,7 +25,7 @@ const Profile: React.FC = () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:5000/api/v1/auth/profile', {
+      const response = await fetch(`${API_BASE_URL}/auth/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

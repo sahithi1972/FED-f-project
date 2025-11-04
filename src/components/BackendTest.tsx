@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 
 interface TestRecipe {
     name: string;
@@ -13,13 +14,13 @@ export const BackendTest = () => {
 
     useEffect(() => {
         // Test basic connection
-        fetch('http://localhost:5000/api/hello')
+        fetch(`${API_BASE_URL}/hello`)
             .then(res => res.json())
             .then(data => setMessage(data.message))
             .catch(err => setError('Failed to connect to backend: ' + err.message));
 
         // Test recipe endpoint
-        fetch('http://localhost:5000/api/test-recipe')
+        fetch(`${API_BASE_URL}/test-recipe`)
             .then(res => res.json())
             .then(data => setRecipe(data.recipe))
             .catch(err => console.error('Failed to fetch recipe:', err));
