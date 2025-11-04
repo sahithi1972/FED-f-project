@@ -63,9 +63,14 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       token,
       requiresProfileSetup: true,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Registration error:', error);
-    sendError(res, 500, 'Internal server error');
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    sendError(res, 500, `Internal server error: ${error.message}`);
   }
 };
 
