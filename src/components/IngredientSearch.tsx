@@ -142,19 +142,6 @@ function IngredientSearch() {
             />
           </div>
 
-          <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2">
-            <Button 
-              variant="hero"
-              size="lg"
-              className="group relative px-6 py-3 text-base font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-lg hover:shadow-emerald-500/30 hover:scale-105 transition-all duration-300 rounded-xl overflow-hidden"
-              onClick={handleFindRecipes}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/0 via-emerald-400/50 to-emerald-400/0 translate-x-[-100%] animate-shimmer"></div>
-              Find Recipes
-              <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-            </Button>
-          </div>
-
           <AnimatePresence>
             {suggestions.length > 0 && (
               <motion.div
@@ -223,6 +210,22 @@ function IngredientSearch() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Find Recipes button - Moved to bottom */}
+          <div className="mt-12 flex justify-center">
+            <Button 
+              variant="hero"
+              size="lg"
+              className="group relative px-8 py-4 text-lg font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-xl hover:shadow-emerald-500/30 hover:scale-105 transition-all duration-300 rounded-xl overflow-hidden w-full max-w-md"
+              onClick={handleFindRecipes}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/0 via-emerald-400/50 to-emerald-400/0 translate-x-[-100%] animate-shimmer"></div>
+              <span className="flex items-center justify-center gap-3">
+                Find Recipes
+                <ArrowRight className="h-6 w-6 transition-transform duration-300 group-hover:translate-x-1" />
+              </span>
+            </Button>
           </div>
         </div>
       </div>
