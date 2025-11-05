@@ -20,6 +20,16 @@ static_sites:
     root: /
     buildCommand: npm ci && npm run build
     publishPath: dist
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate
+      - path: /*
+        name: Pragma
+        value: no-cache
+      - path: /*
+        name: Expires
+        value: "0"
     env:
       - key: VITE_API_URL
         value: ''
