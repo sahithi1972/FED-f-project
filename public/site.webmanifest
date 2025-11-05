@@ -1,0 +1,15 @@
+{
+  "name": "ZeroWasteChef",
+  "short_name": "ZeroWasteChef",
+  "description": "Smart recipe suggestions to reduce food waste",
+  "icons": [
+    {
+      "src": "/images/stir-fry.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ],
+  "theme_color": "#10b981",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}
