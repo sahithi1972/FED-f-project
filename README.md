@@ -10,8 +10,8 @@ A modern recipe application focused on reducing food waste by helping users disc
   - Advanced sorting options (relevance, cooking time, rating)
 
 - **User Authentication**
-  - Email/Password login
-  - Social login options (Google, GitHub)
+  - Secure Email/Password login
+  - Profile management
   - Remember me functionality
 
 - **Responsive UI**

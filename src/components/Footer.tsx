@@ -170,13 +170,13 @@ const Footer = () => {
           </p>
           <div className="flex gap-6">
             <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-              Twitter
+              X (Twitter)
             </a>
             <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
               Instagram
             </a>
             <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-              Facebook
+              LinkedIn
             </a>
           </div>
         </div>
