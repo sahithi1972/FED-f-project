@@ -13,7 +13,6 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { Separator } from "./ui/separator";
 import { Checkbox } from "./ui/checkbox";
 import { useAuth } from "@/contexts/auth-context";
 import { EyeIcon, EyeOffIcon, Loader2, X } from "lucide-react";
@@ -64,8 +63,6 @@ export function SignInDialog({ open, onOpenChange }: SignInDialogProps) {
       setIsLoading(false);
     }
   };
-
-  // Social sign in removed
 
   return (
     <Dialog open={open !== undefined ? open : isOpen} onOpenChange={onOpenChange ?? setIsOpen}>
